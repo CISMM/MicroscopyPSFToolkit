@@ -1,0 +1,135 @@
+template<typename T, int  N>
+Array<T,N> ToolMgr::variantImage(
+    int numberOfStrata,
+    int startOfStrata,
+    int sizeOfStrata
+) {
+    // read the object image
+    Array<T, N> img;
+    wuDataRead(img, inName_);
+
+    // find the psf prefix and suffix
+    std::string psfname = refName_;
+    std::string psfsuffix;
+    std::string psfprefix;
+    size_t i = psfname.rfind('.', psfname.length());
+    if ( i != std::string::npos )
+    {
+        psfprefix = psfname.substr(0,i);
+        psfsuffix = psfname.substr(i, psfname.length());
+    }
+
+    Array<RectDomain<N>, 1> strata(numberOfStrata+2);
+    Array<Array<T,N>, 1> psfs(numberOfStrata+1);
+
+    for ( int m = 0; m <= numberOfStrata+1; m++ )
+    {
+        TinyVector<int, N> l(img.lbound());
+        TinyVector<int,N> u(img.ubound());
+        if( m == 0 )
+        {
+            u(0) = startOfStrata - 1;
+        }
+        else if ( m <= numberOfStrata )
+        {
+            l(0) = startOfStrata + sizeOfStrata * (m-1);
+            u(0) = startOfStrata + sizeOfStrata * m - 1;
+        }
+        else
+        {
+            l(0) = startOfStrata + sizeOfStrata * (m-1);
+        }
+        strata(m).setlbound(l);
+        strata(m).setubound(u);
+        std::cout <<"Strata: "<<m<<" "<<l<<", "<<u<<std::endl;
+
+        if ( m <= numberOfStrata )
+        {
+            std::ostringstream psfm;
+            psfm << psfprefix << m << psfsuffix;
+            std::cout <<psfm.str()<<std::endl;
+            wuDataRead(psfs(m), psfm.str());
+        }
+    }
+
+    // compute the interpolation constants
+    Array<T,1> a;
+    a.resize(img.extent(0));
+    a = 0;
+    int index = strata(0).lbound(int(0));
+    for ( int m = 0; m < strata.length(0); m++ ) 
+    {
+        int l = strata(m).lbound(int(0));
+        int u = strata(m).ubound(int(0));
+        int size = u - l + 1;
+        for ( int j = 0; j < size; j++ ) 
+        { 
+            a(index) = T(1) - T(j)/T(size);
+            index++;
+        }
+    }
+    std::cout <<"a: "<< a << std::endl;
+
+    TinyVector<int,N> extent(img.extent());
+    extent(N-1) = extent(N-1)/2+1;
+
+    // resize the psfs and compute the Fourier transform (OTF)
+    Array<Array<std::complex<T>,N>, 1> psfsF;  
+    psfsF.resize(psfs.length(0));
+    for ( int m = 0; m < psfs.length(0); m++ ) 
+    {
+        psfsF(m).resize(extent);
+        Array<T,N> psfResized(img.extent()); 
+        padCenter(psfs(m), psfResized); 
+        psfsF(m) = forwardFFT(psfResized);
+    }
+
+    // compute the image
+    fftwInterface<T,N> fftw;
+    Array<T,N> s;              
+    Array<T,N> s1;             
+    Array<std::complex<T>,N> imgF;  
+    Array<std::complex<T>,N> sF;  
+
+    s.resize(extent);
+    s1.resize(extent);
+    imgF.resize(extent);
+    sF.resize(extent);
+
+    int m;
+    // get convolution of img with interpolation of psfs 
+    // (multiplication and in Fourier domain)
+    imgF = 0;
+    int size = strata.length(0) - 2;
+    for ( m = 0; m < size; m++ ) 
+    {
+        s = 0;
+        if ( m == 0 )
+        {
+            s(strata(m)) = img(strata(m));
+        }
+        else if ( m == size - 1 )
+        {
+            s(strata(m+2)) = img(strata(m+2));
+        }
+        s(strata(m+1)) = img(strata(m+1));
+
+        s1 = s;
+        multiplyStratum(strata(m+1), s, a, true);
+        multiplyStratum(strata(m+1), s1, a, false);
+
+        fftw.plan(s, sF);
+        fftw.execute();
+        imgF += sF * psfsF(m);
+
+        fftw.plan(s1, sF);
+        fftw.execute();
+        imgF += sF * psfsF(m+1);
+    }
+    // convert back to time domain
+    fftw.plan(imgF, img);
+    fftw.execute();
+    img /= img.size();
+
+    return img;
+}

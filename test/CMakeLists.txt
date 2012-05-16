@@ -1,0 +1,18 @@
+itk_module_test()
+set(ITKMicroscopyPSFToolkitTests
+  itkHaeberleCOSMOSPointSpreadFunctionImageSourceTest.cxx
+  itkGibsonLanniCOSMOSPointSpreadFunctionImageSourceTest.cxx
+)
+
+CreateTestDriver(ITKMicroscopyPSFToolkit "${ITKMicroscopyPSFToolkit-Test_LIBRARIES}" "${ITKMicroscopyPSFToolkitTests}")
+
+itk_add_test(NAME itkHaeberleCOSMOSPointSpreadFunctionImageSourceTest
+  COMMAND ITKMicroscopyPSFToolkitTestDriver
+  itkHaeberleCOSMOSPointSpreadFunctionImageSourceTest ${ITK_TEST_OUTPUT_DIR}/itkHaeberleCOSMOSPointSpreadFunctionImageSourceTest.nrrd
+)
+itk_add_test(NAME itkGibsonLanniCOSMOSPointSpreadFunctionImageSourceTest
+  COMMAND ITKMicroscopyPSFToolkitTestDriver
+  itkGibsonLanniCOSMOSPointSpreadFunctionImageSourceTest ${ITK_TEST_OUTPUT_DIR}/itkGibsonLanniCOSMOSPointSpreadFunctionImageSourceTest.nrrd
+)
+
+target_link_libraries( ITKMicroscopyPSFToolkitTestDriver ITKMicroscopyPSFToolkit )

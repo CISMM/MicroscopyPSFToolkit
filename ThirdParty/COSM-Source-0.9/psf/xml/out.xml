@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<!-- PSF specification file -->
+<!--     model = <"GibsonLani" | "Haeberle" > -->
+<!--     eval = <"Interpolation" | "Exact"> -->
+<!--     type = <"Non-confocal" | "Circular-confocal" | "Line-confocal"> -->
+<PSF model="GibsonLani" eval="Interpolation" type="Non-Confocal" precision="Double" file="psf.wu" dimension="64 64 64" spacing="0.00017 0.00017 0.001" unit="mm" version="0.1">
+    <AbsoluteError value="0.000001" />
+    <LateralMagnification value="40.000000" />
+    <NumericalAperture value="1.000000" />
+    <Wavelength value="0.000580" unit="mm" />
+    <CoverSlip>
+        <RefractiveIndex Design="1.522000" Actual="1.522000" />
+        <Thickness Design="0.000170" Actual="0.000170" unit="mm" />
+    </CoverSlip>
+    <ImmersionMedium>
+        <RefractiveIndex Design="1.515000" Actual="1.515000" />
+        <Thickness Design="0.160000" Actual="0.160000" unit="mm" />
+    </ImmersionMedium>
+    <Specimen>
+        <RefractiveIndex value="1.330000" />
+        <Thickness value="0.000000" unit="mm" />
+    </Specimen>
+    <OTL Design="160.000000" Actual="160.000000" unit="mm" />
+</PSF>

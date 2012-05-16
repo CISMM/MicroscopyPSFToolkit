@@ -1,0 +1,620 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0108 
+header_name {.h} 
+code_name {.cxx}
+decl {\#include "psfAbout.h"} {private local
+}
+
+decl {\#include "FL/Fl_Native_File_Chooser.H"} {private local
+} 
+
+decl {\#include "psf/psfUser.h"} {public local
+}  
+
+decl {\#include "psfMain.h"} {private local
+} 
+
+decl {\#include "wu/wuHeader.h"} {private local
+} 
+
+decl {\#include "tinyxml/tinyxml.h"} {private local
+} 
+
+decl {\#include <blitz/timer.h>} {private local
+} 
+
+decl {\#include <FL/Fl_Sys_Menu_Bar.H>} {private local
+} 
+
+decl {\#include <FL/fl_ask.H>} {private loal
+} 
+
+decl {\#include <stdlib.h>} {private local} 
+
+decl {\#include <map>} {private local
+} 
+
+class PsfGUI {open
+} {
+  Function {PsfGUI()} {open
+  } {
+    Fl_Window psfWindow {
+      label {COSM Psf} open
+      xywh {137 228 974 649} type Double resizable visible
+    } {
+      Fl_Menu_Bar {} {open selected
+        xywh {0 0 1000 25} resizable
+        class Fl_Sys_Menu_Bar
+      } {
+        Submenu {} {
+          label File open
+          xywh {10 10 100 20} labelsize 12
+        } {
+          MenuItem {} {
+            label Quit
+            callback {exit(0);}
+            xywh {10 10 100 20} labelsize 12
+          }
+        }
+        Submenu {} {
+          label Help open
+          xywh {0 0 67 24} labelsize 12
+        } {
+          MenuItem {} {
+            label {About...}
+            callback {if (!aboutDialog) {
+    make_about();
+}
+aboutDialog->show();}
+            xywh {0 0 34 24} labelsize 12
+          }
+        }
+      }
+      Fl_File_Input filenameInput {
+        label {PSF Filename:}
+        tooltip {Path and filename of PSF to be generated} xywh {375 540 440 30} labelsize 12 textsize 12
+      }
+      Fl_Button {} {
+        label {Browse...}
+        callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Write");
+native.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+native.filter("*.wu");
+native.show();
+filenameInput->value(native.filename());}
+        xywh {845 545 90 25} labelsize 12
+      }
+      Fl_Progress psfProgress {
+        label Progress
+        tooltip {Progress of PSF image generation} xywh {40 610 895 20} selection_color 230 labelsize 12
+      }
+      Fl_Button {} {
+        label Generate
+        callback {psfProgress->value(0);
+switch( psfPrecisionInput->value() ) {
+    case 0: generatePsf<float>(); break;
+    case 1: generatePsf<double>(); break;
+    case 2: generatePsf<long double>(); break;
+}}
+        tooltip {Generate PSF image file} xywh {845 575 90 25} labelsize 12
+      }
+      Fl_Group {} {open
+        xywh {40 130 895 380} box ENGRAVED_BOX
+      } {
+        Fl_Round_Button interpolateCheck {
+          label {Radial Interpolation}
+          callback {if ( interpolateCheck->value() )
+{
+    exactCheck->value(false);
+}
+else
+{
+    exactCheck->value(true);
+}}
+          tooltip {Compute  PSF using radial interpolation} xywh {140 170 155 25} down_box ROUND_DOWN_BOX labelsize 12
+        }
+        Fl_Round_Button exactCheck {
+          label {Exact Evaluation}
+          callback {if ( exactCheck->value() )
+{
+    interpolateCheck->value(false);
+}
+else
+{
+    interpolateCheck->value(true);
+}}
+          tooltip {Compute PSF using exact value} xywh {140 190 150 25} down_box ROUND_DOWN_BOX value 1 labelsize 12
+        }
+        Fl_Value_Input psfErrorInput {
+          label {Absolute Error :}
+          xywh {230 360 75 20} labelsize 12 value 1e-06 textsize 12
+        }
+        Fl_Value_Input psfLMInput {
+          label {Lateral Magnification:}
+          xywh {230 380 75 20} labelsize 12 value 40 textsize 12
+        }
+        Fl_Value_Input psfNAInput {
+          label {Numerical Aperture:}
+          xywh {230 400 75 20} labelsize 12 value 1 textsize 12
+        }
+        Fl_Value_Input psfLambdaInput {
+          label {Wavelength (nm):}
+          xywh {230 420 75 20} labelsize 12 value 580 textsize 12
+        }
+        Fl_Group {} {
+          label Coverslip open
+          xywh {370 180 230 65} box ENGRAVED_BOX labelsize 12 align 21
+        } {
+          Fl_Value_Input psfCDRIInput {
+            label {Design:}
+            tooltip {Coverslip Design Refractive Index} xywh {445 200 75 20} labelsize 12 value 1.522 textsize 12
+          }
+          Fl_Value_Input psfCDTInput {
+            xywh {520 200 75 20} labelsize 12 value 0.17 textsize 12
+          }
+          Fl_Value_Input psfCARIInput {
+            label {Actual:}
+            tooltip {Coverslip Actual Refractive Index} xywh {445 220 75 20} labelsize 12 value 1.522 textsize 12
+          }
+          Fl_Value_Input psfCATInput {
+            xywh {520 220 75 20} labelsize 12 value 0.17 textsize 12
+          }
+        }
+        Fl_Box {} {
+          label {Refractive Index}
+          xywh {405 165 110 20} labelsize 12
+        }
+        Fl_Box {} {
+          label {Thickness [mm]}
+          xywh {515 165 85 20} labelsize 12
+        }
+        Fl_Group {} {
+          label {Immersion Medium} open
+          xywh {370 245 230 65} box ENGRAVED_BOX labelsize 12 align 21
+        } {
+          Fl_Value_Input psfIMDRIInput {
+            label {Design:}
+            tooltip {Immersion Medium Design Refractive Index} xywh {445 265 75 20} labelsize 12 value 1.515 textsize 12
+          }
+          Fl_Value_Input psfIMDTInput {
+            xywh {520 265 75 20} labelsize 12 value 0.16 textsize 12
+          }
+          Fl_Value_Input psfIMARIInput {
+            label {Actual:}
+            tooltip {Immersion Medium Actual Refractive Index} xywh {445 285 75 20} labelsize 12 value 1.515
+          }
+          Fl_Value_Input psfIMATInput {
+            xywh {520 285 75 20} labelsize 12 value 0.16 textsize 12
+          }
+        }
+        Fl_Group {} {
+          label Specimen open
+          xywh {370 310 230 65} box ENGRAVED_BOX labelsize 12 align 21
+        } {
+          Fl_Value_Input psfSRIInput {
+            xywh {445 335 75 20} labelsize 12 value 1.33 textsize 12
+          }
+          Fl_Value_Input psfSTInput {
+            xywh {520 335 75 20} labelsize 12 align 5 textsize 12
+          }
+        }
+        Fl_Group {} {
+          label OTL open
+          xywh {370 375 230 65} box ENGRAVED_BOX labelsize 12 align 21
+        } {
+          Fl_Value_Input psfOTLDInput {
+            label {Design [mm]}
+            xywh {445 410 75 20} labelsize 12 align 1 value 160 textsize 12
+          }
+          Fl_Value_Input psfOTLAInput {
+            label {Actual [mm]}
+            xywh {520 410 75 20} labelsize 12 align 1 value 160 textsize 12
+          }
+        }
+        Fl_Value_Input psfXSizeInput {
+          label {Dimension (x,y,z): }
+          tooltip {Size of x dimension in pixels} xywh {185 310 40 20} labelsize 12 value 64 textsize 12
+        }
+        Fl_Value_Input psfYSizeInput {
+          tooltip {Size of y dimension in pixels} xywh {225 310 40 20} labelsize 12 align 1 value 64 textsize 12
+        }
+        Fl_Value_Input psfZSizeInput {
+          tooltip {Size of z dimension in pixels} xywh {265 310 40 20} labelsize 12 align 1 value 64 textsize 12
+        }
+        Fl_Value_Input psfXSpacingInput {
+          label {Spacing [um] (x,y,z):}
+          tooltip {Spacing of  x dimension between pixels in micrometers} xywh {185 330 40 20} labelsize 12 value 0.16 textsize 12
+        }
+        Fl_Value_Input psfYSpacingInput {
+          tooltip {Spacing of y dimension between pixels in micrometers} xywh {225 330 40 20} labelsize 12 align 1 value 0.16 textsize 12
+        }
+        Fl_Value_Input psfZSpacingInput {
+          tooltip {Spacing of z dimension between pixels in micrometers} xywh {265 330 40 20} labelsize 12 align 1 value 1 textsize 12
+        }
+        Fl_Choice psfModelInput {
+          label {Model: } open
+          tooltip {Select model to use for evaluation} xywh {155 225 150 20} down_box BORDER_BOX labelsize 12 textsize 12
+          code0 {psfModelInput->value(0);}
+        } {
+          MenuItem {} {
+            label {Gibson_Lanni1992}
+            xywh {30 30 100 20} labelsize 12
+          }
+          MenuItem {} {
+            label Haeberle
+            xywh {30 30 100 20} labelsize 12
+          }
+        }
+        Fl_Choice psfTypeInput {
+          label {Type: } open
+          tooltip {Select PSF type for evaluation} xywh {155 250 150 20} down_box BORDER_BOX labelsize 12 textsize 12
+          code0 {psfTypeInput->value(0);}
+        } {
+          MenuItem {} {
+            label {Non-Confocal}
+            callback {confocalTab->deactivate();
+dicTab->deactivate();
+exactCheck->activate();}
+            xywh {30 30 100 20} labelsize 12
+          }
+          MenuItem {} {
+            label {2-Photon}
+            callback {confocalTab->deactivate();
+dicTab->deactivate();
+exactCheck->activate();}
+            xywh {0 0 31 20} labelsize 12
+          }
+          MenuItem {} {
+            label {Confocal-Circular}
+            callback {interpolateCheck->value(true);
+exactCheck->value(false);
+confocalTab->activate();
+dicTab->deactivate();
+exactCheck->deactivate();}
+            xywh {30 30 100 20} labelsize 12
+          }
+          MenuItem {} {
+            label {Confocal-Line}
+            callback {interpolateCheck->value(true);
+exactCheck->value(false);
+confocalTab->activate();
+dicTab->deactivate();
+exactCheck->deactivate();}
+            xywh {30 30 100 20} labelsize 12
+          }
+          MenuItem {} {
+            label DIC
+            callback {interpolateCheck->value(true);
+exactCheck->value(false);
+dicTab->activate();
+confocalTab->deactivate();
+exactCheck->deactivate();}
+            xywh {0 0 31 20}
+          }
+        }
+        Fl_Choice psfPrecisionInput {
+          label {Precision: } open
+          tooltip {Select output pixel value data type} xywh {155 275 150 20} down_box BORDER_BOX labelsize 12 textsize 12
+          code0 {psfPrecisionInput->value(0);}
+        } {
+          MenuItem {} {
+            label {Single (32 bit)}
+            xywh {40 40 100 20} labelsize 12
+          }
+          MenuItem {} {
+            label {Double (64bit)}
+            xywh {40 40 100 20} labelsize 12
+          }
+          MenuItem {} {
+            label {Long Double (80 bit)}
+            xywh {50 50 100 20} labelsize 12
+          }
+        }
+        Fl_Value_Input psfIntervalInput {
+          label {Thickness Interval (mm):}
+          xywh {815 402 75 18} labelsize 12 textsize 12
+        }
+        Fl_Value_Input psfTotalInput {
+          label {Total Number:}
+          xywh {815 422 75 18} labelsize 12 minimum 1 maximum 1024 value 1 textsize 12
+        }
+        Fl_Check_Button psfSumCheck {
+          label {Sum over Y:}
+          xywh {815 450 30 15} down_box DOWN_BOX labelsize 12 align 4
+        }
+        Fl_Group confocalTab {
+          label Confocal open
+          xywh {665 180 230 80} box ENGRAVED_BOX labelsize 12 align 21 deactivate
+        } {
+          Fl_Value_Input psfMagYInput {
+            label {Magnification:}
+            xywh {815 231 75 19} labelsize 12 value 1 textsize 12
+          }
+          Fl_Value_Input psfFSizeInput {
+            label Size
+            xywh {815 191 75 19} labelsize 12 textsize 12
+          }
+          Fl_Value_Input psfDistanceInput {
+            label {Distance:}
+            xywh {815 211 75 19} labelsize 12 textsize 12
+          }
+        }
+        Fl_Group dicTab {
+          label DIC open
+          xywh {665 265 230 105} box ENGRAVED_BOX labelsize 12 align 21 deactivate
+        } {
+          Fl_Value_Input psfAmplitudeRatioInput {
+            label {Amplitude Ratio:}
+            xywh {815 316 75 19} labelsize 12 value 0.5 textsize 12
+          }
+          Fl_Value_Input psfShearInput {
+            label {Shear:}
+            xywh {815 276 75 19} labelsize 12 textsize 12
+          }
+          Fl_Value_Input psfBiasInput {
+            label {Bias:}
+            xywh {815 296 75 19} labelsize 12 textsize 12
+          }
+          Fl_Value_Input psfRotationAngleInput {
+            label {Rotation Angle::}
+            xywh {815 336 75 19} labelsize 12 textsize 12
+          }
+        }
+        Fl_Value_Input psfAngleInterval {
+          label {Angle Interval::}
+          xywh {815 382 75 18} labelsize 12 textsize 12
+        }
+        Fl_Check_Button psfCenteredCheck {
+          label {Uncentered:}
+          xywh {815 470 30 15} down_box DOWN_BOX labelsize 12 align 4
+          code0 {o->value(false);}
+        }
+        code {
+        	PsfXml<double> psfXml;
+		    
+		    std::string file = "lastest.xml";
+		
+		    if (psfXml.open(file) ){
+		       
+			    psfNAInput->value(psfXml.na());
+			    psfLambdaInput->value(psfXml.lambda()*1e6);
+			    psfLMInput->value(psfXml.lm());
+			    psfErrorInput->value(psfXml.absError());
+			    psfSTInput->value(psfXml.ts());
+			    psfSRIInput->value(psfXml.ns());
+			    psfIMDTInput->value(psfXml.tid());
+			    psfIMDRIInput->value(psfXml.nid());
+			    psfIMATInput->value(psfXml.tia());
+			    psfIMARIInput->value(psfXml.nia());
+			    psfCDTInput->value(psfXml.tgd());
+			    psfCDRIInput->value(psfXml.ngd());
+			    psfCATInput->value(psfXml.tga());
+			    psfCARIInput->value(psfXml.nga());
+			    psfOTLDInput->value(psfXml.tld());
+			    psfOTLAInput->value(psfXml.tla());   
+			    psfXSizeInput->value(psfXml.Nxy());
+			    psfYSizeInput->value(psfXml.Nxy());
+			    psfZSizeInput->value(psfXml.Nz()); 
+			    psfXSpacingInput->value(psfXml.deltaXY()*1e3);
+			    psfYSpacingInput->value(psfXml.deltaXY()*1e3);
+			    psfZSpacingInput->value(psfXml.deltaZ()*1e3);
+			    psfModelInput->value(psfXml.model());
+			    interpolateCheck->value(psfXml.evalStr() == "Interpolation");
+			    exactCheck->value(psfXml.evalStr() == "Exact");
+			    psfPrecisionInput->value(psfXml.precision());
+			    psfTypeInput->value(psfXml.type());
+			    
+		    	psfFSizeInput->value(psfXml.fsize());
+		    	psfDistanceInput->value(psfXml.distance());
+		    	psfMagYInput->value(psfXml.magY());
+		    	psfShearInput->value(psfXml.shear());
+		    	psfBiasInput->value(psfXml.bias());
+		    	psfAmplitudeRatioInput->value(psfXml.amplitudeRatio());
+		    	psfRotationAngleInput->value(psfXml.rotation());
+			}
+		}
+		{}
+      }
+      Fl_File_Input xmlInput {
+        label {PSF XML Import File:}
+        tooltip {Path and filename for PSF XML description} xywh {405 45 410 30} labelsize 12 textsize 12
+      }
+      Fl_Button {} {
+        label {Browse...}
+        callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.xml");
+native.show();
+xmlInput->value(native.filename());}
+        xywh {845 50 90 25} labelsize 12
+      }
+      Fl_Button {} {
+        label Open
+        callback {if ( xmlInput != NULL && xmlInput->value() ) {
+    readParameters();
+}
+else
+{
+    fl_alert("PSF XML Input Configuration Filename not Specified");
+}}
+        tooltip {Read and initialize parameters from selected XML file} xywh {845 80 90 25} labelsize 12
+      }
+      Fl_Check_Button psfRealAndImaginaryCheck {
+        label {Generate Real and Imaginary}
+        xywh {800 580 20 20} down_box DOWN_BOX labelsize 12 align 4
+      }
+    }
+  }
+  Function {~PsfGUI()} {open
+  } {
+    code {} {selected
+    }
+  }
+  Function {show(int argc, char* argv[])} {open return_type void
+  } {
+    code {this->psfWindow->show(argc,argv);} {}
+  }
+  Function {generatePsf()} {open return_type {template<typename T> void}
+  } {
+    code {if ( filenameInput->value() == "" || filenameInput->value() == NULL )
+{
+    fl_alert("No PSF Output Filename specified");
+    return;
+}
+std::string psfname = std::string(filenameInput->value());
+std::string psfsuffix;
+std::string psfprefix;
+size_t i = psfname.rfind('.', psfname.length());
+if ( i != std::string::npos )
+{
+    psfprefix = psfname.substr(0,i);
+    psfsuffix = psfname.substr(i, psfname.length());
+}
+
+cosm::PsfXml<T> psfXml;
+
+psfXml.na(psfNAInput->value());
+psfXml.lambda(1e-6 *psfLambdaInput->value());
+psfXml.lm(psfLMInput->value());
+psfXml.absError(psfErrorInput->value());
+psfXml.ns(psfSRIInput->value());
+psfXml.tid(psfIMDTInput->value());
+psfXml.nid(psfIMDRIInput->value());
+psfXml.tia(psfIMATInput->value());
+psfXml.nia(psfIMARIInput->value());
+psfXml.tgd(psfCDTInput->value());
+psfXml.ngd(psfCDRIInput->value());
+psfXml.tga(psfCATInput->value());
+psfXml.nga(psfCARIInput->value());
+psfXml.tld(psfOTLDInput->value());
+psfXml.tla(psfOTLAInput->value());
+psfXml.Nxy((int) psfXSizeInput->value());
+psfXml.Nz((int) psfZSizeInput->value());
+psfXml.deltaXY(1e-3 * psfXSpacingInput->value());
+psfXml.deltaZ(1e-3 * psfZSpacingInput->value());
+
+psfXml.model((typename cosm::Psf<T>::Model)psfModelInput->value());
+psfXml.eval(interpolateCheck->value() ? "Interpolation" : "Exact");
+psfXml.type((cosm::PsfType)psfTypeInput->value());
+psfXml.precision((typename cosm::PsfXml<T>::Precision)psfPrecisionInput->value());
+psfXml.sum(psfSumCheck->value() );
+psfXml.centered(!psfCenteredCheck->value() );
+psfXml.fsize(psfFSizeInput->value());
+psfXml.distance(psfDistanceInput->value());
+psfXml.magY(psfMagYInput->value());
+psfXml.shear(psfShearInput->value());
+psfXml.bias(psfBiasInput->value());
+psfXml.amplitudeRatio(psfAmplitudeRatioInput->value());
+psfXml.rotation(psfRotationAngleInput->value());
+psfXml.realAndImag(psfRealAndImaginaryCheck->value());
+
+
+PsfObserver psfObserver(psfProgress);
+std::cout <<" error: "<< psfXml.absError() << std::endl;
+
+
+    
+float thickness = psfSTInput->value();
+for ( int i = 0; i < psfTotalInput->value(); i++ )
+{
+    std::ostringstream psfindex;
+    psfindex << psfprefix << i;
+    std::string psffile = (psfTotalInput->value() == 1) ? psfname : (psfindex.str() + psfsuffix);
+    std::string xmlfile = (psfTotalInput->value() == 1) ? (psfprefix + ".xml") : (psfindex.str() + ".xml");
+    psfXml.file(psffile);
+    psfSTInput->value(thickness);
+    psfXml.ts(thickness);
+    psfXml.save(xmlfile);
+    evaluate(psfXml, &psfObserver);
+    thickness += psfIntervalInput->value();
+}} {}
+  }
+  Function {readParameters()} {open return_type void
+  } {
+    code {PsfXml<double> psfXml;
+    
+    std::string file = xmlInput->value();
+    psfXml.open(file);
+       
+    psfNAInput->value(psfXml.na());
+    psfLambdaInput->value(psfXml.lambda()*1e6);
+    psfLMInput->value(psfXml.lm());
+    psfErrorInput->value(psfXml.absError());
+    psfSTInput->value(psfXml.ts());
+    psfSRIInput->value(psfXml.ns());
+    psfIMDTInput->value(psfXml.tid());
+    psfIMDRIInput->value(psfXml.nid());
+    psfIMATInput->value(psfXml.tia());
+    psfIMARIInput->value(psfXml.nia());
+    psfCDTInput->value(psfXml.tgd());
+    psfCDRIInput->value(psfXml.ngd());
+    psfCATInput->value(psfXml.tga());
+    psfCARIInput->value(psfXml.nga());
+    psfOTLDInput->value(psfXml.tld());
+    psfOTLAInput->value(psfXml.tla());   
+    psfXSizeInput->value(psfXml.Nxy());
+    psfYSizeInput->value(psfXml.Nxy());
+    psfZSizeInput->value(psfXml.Nz()); 
+    psfXSpacingInput->value(psfXml.deltaXY()*1e3);
+    psfYSpacingInput->value(psfXml.deltaXY()*1e3);
+    psfZSpacingInput->value(psfXml.deltaZ()*1e3);
+    psfModelInput->value(psfXml.model());
+    interpolateCheck->value(psfXml.evalStr() == "Interpolation");
+    exactCheck->value(psfXml.evalStr() == "Exact");
+    psfPrecisionInput->value(psfXml.precision());
+    psfTypeInput->value(psfXml.type());
+    
+    filenameInput->value(psfXml.file().c_str());
+    
+    psfFSizeInput->value(psfXml.fsize());
+    psfDistanceInput->value(psfXml.distance());
+    psfMagYInput->value(psfXml.magY());
+    psfShearInput->value(psfXml.shear());
+    psfBiasInput->value(psfXml.bias());
+    psfAmplitudeRatioInput->value(psfXml.amplitudeRatio());
+    psfRotationAngleInput->value(psfXml.rotation());} {}
+  }
+} 
+
+class PsfObserver {open : {public cosm::PsfUser}
+} {
+  Function {PsfObserver(Fl_Progress* prog): PsfUser(), progress_(prog), type_(PsfUser::UNKNOWN)} {open
+  } {
+    code{} {}
+  }
+  Function {~PsfObserver()} {open
+  } {
+    code{} {}
+  }
+  Function {update( PsfUser::Type type, int count, int total )} {open return_type void
+  } {
+    code {if ( type_ != type )
+{
+    progress_->value(0);
+    type_ = type;
+    if ( type == PsfUser::RADIAL )
+    {
+        progress_->label("Radial Progress");
+    }
+    else if ( type == PsfUser::COMPLETE )
+    {
+        progress_->label("Complete Progress");
+    }
+    else
+    {
+	type_ = PsfUser::UNKNOWN;
+        progress_->label("Progress");
+    }
+}
+progress_->value(100.0*float(count+1)/float(total));
+//progress_->redraw();
+Fl::wait(0.0);} {}
+  }
+  decl {Fl_Progress* progress_;} { private local 
+  }
+  decl {PsfUser::Type type_;} { private local
+  }
+} 

@@ -1,0 +1,492 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0108 
+header_name {.h} 
+code_name {.cxx}
+decl {\#include "FL/Fl_Native_File_Chooser.H"} {} 
+
+decl {\#include <FL/Fl_Sys_Menu_Bar.H>} {} 
+
+decl {\#include <FL/fl_ask.H>} {} 
+
+decl {\#include "Cartesian.h"} {public
+} 
+
+decl {\#include "ViewerAbout.h"} {} 
+
+decl {\#include "Fl_VTK_Window.H"} {} 
+
+decl {\#include "ViewerBase.h"} {} 
+
+decl {\#include <vtkObjectFactory.h>} {} 
+
+decl {\#include <vtkRenderer.h>} {public
+} 
+
+decl {\#include <vtkRenderWindow.h>} {} 
+
+decl {\#include <vtkInteractorStyleImage.h>} {} 
+
+decl {\#include <vtkRenderWindowInteractor.h>} {} 
+
+decl {class Fl_VTK_Window;} {public
+} 
+
+decl {class ViewerBase;} {public
+} 
+
+decl {/* fool fluid */
+vtkCxxRevisionMacro (ViewerGUI, "$Revision: 1.4 $");} {} 
+
+decl {/* fool fluid */
+vtkStandardNewMacro (ViewerGUI);} {} 
+
+class VTK_EXPORT ViewerGUI {open : {public vtkObject}
+} {
+  decl {static ViewerGUI* New(void);} {public
+  }
+  decl {vtkTypeRevisionMacro(ViewerGUI, vtkObject);} {public
+  }
+  Function {ViewerGUI() : viewerBase( new ViewerBase), activeGraph(false)} {open
+  } {
+    Fl_Window mWindow {
+      label {COSM Viewer} open
+      xywh {299 128 966 830} type Double resizable visible
+    } {
+      Fl_Menu_Bar {} {open
+        xywh {0 0 1000 25}
+        class Fl_Sys_Menu_Bar
+      } {
+        Submenu {} {
+          label File open
+          xywh {30 30 100 20}
+        } {
+          MenuItem {} {
+            label Open
+            callback {const char* filename;
+Fl_Native_File_Chooser native;
+
+native.title("Image File");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu\\n*.{wu,tiff,tiff,png,pnm,pgm,ppm,jpg,jpeg}\\n*.{tif, tiff}\\n*.png\\n*.{pnm,pgm,ppm}\\n*.{jpg,jpeg}");
+native.show();
+filename = native.filename();
+ 
+printf("Filename: %s\\n", filename);
+if ( (filename != NULL) && (filename != "") ) {
+    this->viewerBase->SetFileName(filename);
+    char label[512] = "COSM Viewer - ";
+    strcat( label, filename );
+    this->mWindow->label(label);
+    this->viewerBase->Pipeline();
+    this->Show();
+}
+else
+{
+    fl_alert("Unknown Image Filename");
+}}
+            xywh {30 30 100 20}
+          }
+          MenuItem {} {
+            label Save
+            callback {const char* filename;
+Fl_Native_File_Chooser native;
+
+native.title("WU File");
+native.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+native.filter("*.wu");
+native.show();
+filename = native.filename();
+ 
+printf("Filename: %s\\n", filename);
+if ( (filename != NULL) && (filename != "") ) {
+    this->viewerBase->WriteFile(filename);
+}}
+            xywh {0 0 31 20}
+          }
+          MenuItem {} {
+            label Quit
+            callback {exit(0);}
+            xywh {30 30 100 20}
+          }
+        }
+        Submenu {} {
+          label Help open
+          xywh {5 5 67 24}
+        } {
+          MenuItem {} {
+            label {About...}
+            callback {if (!aboutDialog) {
+    make_about();
+}
+aboutDialog->show();}
+            xywh {5 5 34 24}
+          }
+        }
+      }
+      Fl_Group {} {open
+        xywh {475 40 475 445} box ENGRAVED_BOX align 5
+      } {
+        Fl_Box graphCanvas {
+          xywh {560 72 370 278} box ENGRAVED_BOX color 7
+          code0 {o->current();}
+          class Ca_Canvas
+        }
+        Fl_Box yAxis {
+          label Intensity
+          xywh {485 64 75 329} align 5
+          code0 {o->grid_visible(CA_MINOR_TICK|CA_MAJOR_TICK|CA_LABEL_GRID|CA_ALWAYS_VISIBLE);}
+          code1 {o->minor_grid_color(FL_RED); o->major_grid_color(FL_RED); o->label_grid_color(FL_RED); o->label_size(10); //o->label_format("%3.1e");}
+          code2 {o->minimum(0); o->maximum(1);}
+          code3 {o->scale(CA_LIN); o->current();}
+          class Ca_Y_Axis
+        }
+        Fl_Box xAxis {
+          label sample
+          xywh {540 347 400 46} align 10
+          code0 {o->grid_visible(CA_MINOR_TICK|CA_MAJOR_TICK|CA_LABEL_GRID|CA_ALWAYS_VISIBLE);}
+          code1 {o->minor_grid_color(FL_RED); o->major_grid_color(FL_RED); o->label_grid_color(FL_RED); o->label_size(10);}
+          code2 {o->minimum(0); o->maximum(100);}
+          code3 {o->current();}
+          class Ca_X_Axis
+        }
+        Fl_Button {} {
+          label Graph
+          callback {this->MakeGraph();}
+          tooltip {Plot the intersection in graph area} xywh {795 415 135 25}
+        }
+        Fl_Button {} {
+          label Clear
+          callback {graphCanvas->clear();
+activeGraph = false;}
+          tooltip {Clear the plots in graph area} xywh {795 440 135 25}
+        }
+        Fl_Choice scaleChoice {
+          label {Scale: } open
+          tooltip {Linear or Logarithmic plotting} xywh {655 440 135 25} down_box BORDER_BOX
+        } {
+          MenuItem {} {
+            label Linear
+            callback {yAxis->scale(CA_LIN);
+yAxis->minimum(0); 
+//yAxis->maximum(1);}
+            xywh {10 10 100 20}
+          }
+          MenuItem {} {
+            label Logarithmic
+            callback {yAxis->scale(CA_LOG);
+yAxis->minimum(1e-9); 
+//yAxis->maximum(1);}
+            xywh {10 10 100 20}
+          }
+        }
+        Fl_Choice intersectChoice {
+          label {Intersection: } open
+          tooltip {Intersection of two planes to plot} xywh {655 415 135 25} down_box BORDER_BOX
+        } {
+          MenuItem {} {
+            label {XY and XZ Plane}
+            xywh {10 10 100 20} labelcolor 1
+          }
+          MenuItem {} {
+            label {XY and YZ Plane}
+            xywh {10 10 100 20} labelcolor 6
+          }
+          MenuItem {} {
+            label {XZ and YZ Plane}
+            xywh {10 10 100 20} labelcolor 2
+          }
+        }
+      }
+      Fl_Box volView {
+        private tooltip {Right button - zoom,  Left button - rotate/pick value} xywh {15 40 445 420} box ENGRAVED_BOX labeltype NO_LABEL when 8
+        code0 {o->resizable(*o);}
+        class Fl_VTK_Window
+      }
+      Fl_Group {} {open
+        xywh {15 500 745 315} box ENGRAVED_BOX
+      } {
+        Fl_Value_Slider zSlider {
+          label {Z:}
+          user_data this
+          callback {this->SetZSlice((int)zSlider->value());}
+          tooltip {Select XY Plane  (Z value)} xywh {40 780 220 20} type {Horz Knob} align 4 maximum 0 step 1 slider_size 0.070707
+        }
+        Fl_Value_Slider ySlider {
+          label {Y:}
+          user_data this
+          callback {this->SetYSlice((int)ySlider->value());}
+          tooltip {Select XZ Plane  (Y value)} xywh {285 780 220 20} type {Horz Knob} align 4 maximum 0 step 1 slider_size 0.070707
+        }
+        Fl_Value_Slider xSlider {
+          label {X:}
+          user_data this
+          callback {this->SetXSlice((int)xSlider->value());}
+          tooltip {Select YZ Plane  (X value)} xywh {530 780 220 20} type {Horz Knob} align 4 maximum 0 step 1 slider_size 0.070707
+        }
+        Fl_Group {} {
+          label {XY Plane} open
+          xywh {20 530 240 240} box ENGRAVED_BOX
+        } {
+          Fl_Box zView {
+            private tooltip {Right button - zoom,  Middle button - move} xywh {20 530 240 240} labeltype NO_LABEL align 5
+            code0 {o->resizable(*o);}
+            class Fl_VTK_Window
+          }
+        }
+        Fl_Group {} {
+          label {ZX Plane} open
+          xywh {265 530 240 240} box ENGRAVED_BOX
+        } {
+          Fl_Box yView {
+            private tooltip {Right button - zoom,  Middle button - move} xywh {265 530 240 240} labeltype NO_LABEL align 1
+            code0 {o->resizable(*o);}
+            class Fl_VTK_Window
+          }
+        }
+        Fl_Group {} {
+          label {YZ Plane} open
+          xywh {510 530 240 240} box ENGRAVED_BOX
+        } {
+          Fl_Box xView {
+            private tooltip {Right button - zoom,  Middle button - move} xywh {510 530 240 240} align 1
+            code0 {o->resizable(*o);}
+            class Fl_VTK_Window
+          }
+        }
+      }
+      Fl_Group {} {open
+        xywh {770 500 180 315} box ENGRAVED_BOX
+      } {
+        Fl_Box bView {
+          private tooltip {Gray level to value mapping} xywh {785 535 85 235} box ENGRAVED_BOX align 1
+          code0 {o->resizable(*o);}
+          class Fl_VTK_Window
+        }
+        Fl_Value_Slider levelSlider {
+          label Level
+          callback {this->viewerBase->SetLevel(levelSlider->value());
+this->Render();}
+          tooltip {Select Window-Level Transfer function (Center value)} xywh {880 535 25 235} type {Vert Knob} labelsize 12 align 1 step 0.001 value 0.5
+        }
+        Fl_Value_Slider windowSlider {
+          label Window
+          callback {this->viewerBase->SetWindow(windowSlider->value());
+this->Render();}
+          tooltip {Select Window-Level Transfer function (window size)} xywh {910 535 25 235} type {Vert Knob} labelsize 12 align 1 step 0.001 value 1
+        }
+      }
+      Fl_Button {} {
+        label {Reset Size}
+        callback {this->volView->GetDefaultRenderer()->ResetCamera();
+this->Render();}
+        xywh {325 460 134 25}
+      }
+    }
+    code {this->mWindow->user_data((void*)this);} {}
+    code {this->zView->user_data((void*)this);
+this->yView->user_data((void*)this);
+this->xView->user_data((void*)this);
+
+this->volView->user_data((void*)this);
+this->bView->user_data((void*)this);
+
+vtkInteractorStyleImage* imageStyle1 = vtkInteractorStyleImage::New();
+this->xView->GetInteractor()->SetInteractorStyle(imageStyle1);
+vtkInteractorStyleImage* imageStyle2 = vtkInteractorStyleImage::New();
+this->yView->GetInteractor()->SetInteractorStyle(imageStyle2);
+vtkInteractorStyleImage* imageStyle3 = vtkInteractorStyleImage::New();
+this->zView->GetInteractor()->SetInteractorStyle(imageStyle3);
+
+vtkInteractorStyleImage* imageStyle4 = vtkInteractorStyleImage::New();
+this->bView->GetInteractor()->SetInteractorStyle(imageStyle4);} {}
+    code {colorGraph[0] = FL_BLACK;
+colorGraph[1] = FL_RED;
+colorGraph[3] = FL_GREEN;
+colorGraph[4] = FL_YELLOW;
+colorGraph[5] = FL_BLUE;
+colorGraph[6] = FL_MAGENTA;
+colorGraph[7] = FL_CYAN;
+colorGraph[8] = FL_DARK_RED;
+colorGraph[9] = FL_DARK_YELLOW;
+colorGraph[10] = FL_DARK_BLUE;
+colorGraph[11] = FL_DARK_MAGENTA;
+colorGraph[12] = FL_DARK_CYAN;
+selColor = 0;} {}
+  }
+  Function {~ViewerGUI()} {open return_type virtual
+  } {
+    code {if (this->mWindow != (Fl_Window *) 0)
+  {
+    this->mWindow->hide();
+    delete this->mWindow;
+  }
+  
+delete viewerBase;} {}
+  }
+  Function {UpdateView(void)} {open return_type void
+  } {
+    code {if ( zView != NULL )
+{
+    this->zView->Update();
+}
+if ( yView != NULL )
+{
+    this->yView->Update();
+}
+if ( xView != NULL )
+{
+    this->xView->Update();
+}
+
+if ( volView != NULL )
+{
+    this->volView->Update();
+}
+if ( bView != NULL )
+{
+    this->bView->Update();
+}} {}
+  }
+  Function {Show( void )} {open return_type void
+  } {
+    code {if (this->mWindow != (Fl_Window *) 0)
+{       
+    if ( this->volView != NULL)
+    {
+        this->viewerBase->AddActorsVol(this->volView->GetRenderWindow(), this->volView->GetDefaultRenderer());
+    }                                                               
+    if ( this->zView != NULL)
+    {
+        this->viewerBase->AddActorsPlane(2,this->zView->GetRenderWindow(), this->zView->GetDefaultRenderer());
+    }     
+    if ( this->yView != NULL)
+    {
+        this->viewerBase->AddActorsPlane(1,this->yView->GetRenderWindow(), this->yView->GetDefaultRenderer());
+    } 
+    if ( this->xView != NULL)
+    {
+        this->viewerBase->AddActorsPlane(0, this->xView->GetRenderWindow(), this->xView->GetDefaultRenderer());
+    }     
+
+    if ( this->bView != NULL)
+    {
+        this->viewerBase->AddActorsBar(this->bView->GetDefaultRenderer());
+    }
+ 
+    int zsize = this->viewerBase->GetZSize();
+    int ysize = this->viewerBase->GetYSize();
+    int xsize = this->viewerBase->GetXSize();
+    this->xSlider->bounds(0, xsize);
+    this->ySlider->bounds(0, ysize);
+    this->zSlider->bounds(0, zsize);
+    this->xSlider->value((xsize+1)/2);
+    this->ySlider->value((ysize+1)/2);
+    this->zSlider->value((zsize+1)/2);
+    SetXSlice((xsize+1)/2);
+    SetYSlice((ysize+1)/2);
+    SetZSlice((zsize+2)/2);
+    this->levelSlider->value(0.5);
+    this->windowSlider->value(1.0);
+    this->Render();
+}} {selected
+    }
+  }
+  Function {Show(int aArgc, char* aArgv[])} {open return_type {virtual void}
+  } {
+    code {if (this->mWindow != (Fl_Window *) 0)
+{
+    this->mWindow->show(aArgc, aArgv);
+    Show();
+}} {}
+  }
+  Function {SetZSlice(unsigned short slice)} {open return_type void
+  } {
+    code {viewerBase->SetZSlice(slice);
+this->Render();} {}
+  }
+  Function {SetYSlice(unsigned short slice)} {open return_type void
+  } {
+    code {viewerBase->SetYSlice(slice);
+this->Render();} {}
+  }
+  Function {SetXSlice(unsigned short slice)} {open return_type void
+  } {
+    code {viewerBase->SetXSlice(slice);
+this->Render();} {}
+  }
+  Function {Render()} {open return_type void
+  } {
+    code {this->volView->GetRenderWindow()->Render();
+this->xView->GetRenderWindow()->Render();
+this->yView->GetRenderWindow()->Render();
+this->zView->GetRenderWindow()->Render();
+this->bView->GetRenderWindow()->Render();} {}
+  }
+  Function {MakeGraph()} {open return_type void
+  } {
+    code {int zsize = this->viewerBase->GetZSize();
+int ysize = this->viewerBase->GetYSize();
+int xsize = this->viewerBase->GetXSize();
+int zSlice = viewerBase->GetZSlice();
+int ySlice = viewerBase->GetYSlice();
+int xSlice = viewerBase->GetXSlice();
+int sel = intersectChoice->value();
+int max = (sel == 0 ? xsize : (sel == 1 ? ysize : zsize )) + 1;
+xAxis->maximum(max);
+
+double* line = new double[max];
+double* yData = new double[max];
+double* xData = new double[max];
+double maxValue = -1e10;
+double minValue = 1e10;
+viewerBase->GetLine(line, zSlice, ySlice, xSlice, sel);
+for ( int i = 0; i < max; i++ )
+{
+    if ( maxValue < line[i] ) 
+    {
+        maxValue = line[i];
+    }
+    if ( minValue > line[i] ) 
+    {
+        minValue = line[i];
+    }
+    yData[i] = line[i];
+    xData[i] = (double)i;
+}
+
+if ( activeGraph && (minValue < maxValue) ) 
+{ 
+    if ( maxValue > yAxis->maximum() )
+    {
+        yAxis->maximum(maxValue);
+    }
+    if ( minValue < yAxis->minimum() )
+    {
+        yAxis->minimum(minValue);
+    }
+}
+else if ( !activeGraph && (minValue < maxValue)) 
+{
+    yAxis->maximum(maxValue);
+    if ( (minValue < 1E-12) && (scaleChoice->value() == 1) )
+    {
+        minValue = 1E-12;
+    }
+    yAxis->minimum(minValue);
+}
+else
+{
+    //printf("ignor min/max\\n");
+}
+
+Ca_Line* caLine = new Ca_Line(max, xData, yData, 0, 0, colorGraph[selColor]);
+selColor = (selColor + 1 ) % 13;
+activeGraph = true;} {}
+  }
+  decl {ViewerGUI(const ViewerGUI&); // Not implemented.} {}
+  decl {const ViewerGUI& operator=(const ViewerGUI&); // Not implemented.} {}
+  decl {ViewerBase* viewerBase;} {}
+  decl {bool activeGraph} {}
+  decl {int selColor;} {}
+  decl {Fl_Color colorGraph[13];} {}
+} 

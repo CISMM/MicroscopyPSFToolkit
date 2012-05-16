@@ -1,0 +1,1281 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0110 
+header_name {.h} 
+code_name {.cxx}
+decl {\#include "toolAbout.h"} {} 
+
+decl {\#include "xml/toolsXml.h"} {} 
+
+decl {\#include "FL/Fl_Native_File_Chooser.H"} {} 
+
+decl {\#include "tinyxml/tinyxml.h"} {} 
+
+decl {\#include "toolMgr.h"} {} 
+
+decl {\#include <FL/Fl_Sys_Menu_Bar.H>} {} 
+
+decl {\#include <FL/fl_ask.H>} {} 
+
+decl {\#include <string>} {public
+} 
+
+class ToolGUI {open
+} {
+  Function {ToolGUI()} {open
+  } {
+    Fl_Window toolWindow {
+	  label {COSM Tools} open
+      xywh {365 281 835 553} type Double resizable visible
+    } {
+      Fl_Menu_Bar {} {open
+        xywh {0 0 865 25} resizable
+        class Fl_Sys_Menu_Bar
+      } {
+        Submenu {} {
+          label File open
+          xywh {15 15 100 20}
+        } {
+          MenuItem {} {
+            label Quit
+            callback {exit(0);}
+            xywh {15 15 100 20}
+          }
+        }
+        Submenu {} {
+          label Help open
+          xywh {5 5 67 24}
+        } {
+          MenuItem {} {
+            label {About...}
+            callback {if (!aboutDialog) {
+    make_about();
+}
+aboutDialog->show();}
+            xywh {5 5 34 24}
+          }
+        }
+      }
+      Fl_Tabs {} {open
+        xywh {20 50 795 485}
+      } {
+        Fl_Group {} {
+          label Info open
+          xywh {20 75 735 450} hide
+        } {
+          Fl_File_Input toolInfoDataInput {
+            label {Image File:}
+            tooltip {Path and file name of image to be opened for information} xywh {165 100 390 30}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolInfoDataInput->value(native.filename());}
+            xywh {585 105 90 25}
+          }
+          Fl_Button {} {
+            label Open
+            callback {executeInfo();}
+            tooltip {Open specified file for image information} xywh {585 145 90 25}
+          }
+          Fl_Group {} {
+            label {Image Information:} open
+            xywh {50 200 625 240} box ENGRAVED_BOX align 5
+          } {
+            Fl_Output toolInfoDataTypeOutput {
+              label {Data Type:}
+              xywh {475 235 100 25}
+            }
+            Fl_Value_Output toolInfoZDimOutput {
+              xywh {350 236 30 24}
+            }
+            Fl_Value_Output toolInfoYDimOutput {
+              xywh {315 236 30 24}
+            }
+            Fl_Value_Output toolInfoXDimOutput {
+              label {Dimension (x,y,z) :}
+              xywh {280 236 30 24}
+            }
+            Fl_Value_Output toolInfoMaximumOutput {
+              label {Maximum: }
+              xywh {280 311 100 24}
+            }
+            Fl_Value_Output toolInfoMinimumOutput {
+              label {Minimum: }
+              xywh {280 346 100 24}
+            }
+            Fl_Value_Output toolInfoAverageOutput {
+              label {Average: }
+              xywh {280 381 100 24}
+            }
+            Fl_Value_Output toolInfoSizeInBytesOutput {
+              label {Size in Bytes: }
+              xywh {475 271 100 24}
+            }
+          }
+        }
+        Fl_Group {} {
+          label {Remove Header} open
+          xywh {20 75 735 450} hide
+        } {
+          Fl_File_Input toolRemoveDataInput {
+            label {Image File:}
+            tooltip {path and file name for image with header to be removed} xywh {165 100 390 30}
+          }
+          Fl_File_Input toolRemoveOutputInput {
+            label {Output File:}
+            tooltip {path and filename for the removed header image} xywh {165 140 390 30}
+          }
+          Fl_Value_Input toolRemoveNumberInput {
+            label {Number of File:}
+            tooltip {File number to remove header} xywh {320 340 100 25} minimum 1 maximum 1024 value 1
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolRemoveDataInput->value(native.filename());}
+            xywh {585 105 90 25}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolRemoveOutputInput->value(native.filename());}
+            xywh {585 145 90 25}
+          }
+          Fl_Button {} {
+            label Execute
+            callback {executeRemove();}
+            tooltip {Execute header removal} xywh {585 185 90 25}
+          }
+        }
+        Fl_Group {} {
+          label {Add Header} open
+          xywh {20 75 735 450} hide
+        } {
+          Fl_File_Input toolAddDataInput {
+            label {Image File:}
+            tooltip {path and filename for input image without a header} xywh {165 100 390 30}
+          }
+          Fl_File_Input toolAddOutputInput {
+            label {Output File:}
+            tooltip {path and filename for output image with header added} xywh {165 140 390 30}
+          }
+          Fl_Value_Input toolAddXDimInput {
+            label {Dimension (x,y,z) :}
+            tooltip {Size of x dimension in pixels} xywh {280 236 30 24} maximum 0
+          }
+          Fl_Value_Input toolAddYDimInput {
+            tooltip {Size of y dimension in pixels} xywh {315 236 30 24} maximum 0
+          }
+          Fl_Value_Input toolAddZDimInput {
+            tooltip {Size of z dimension in pixels} xywh {350 236 30 24} maximum 0
+          }
+          Fl_Choice toolAddDataTypeChoice {
+            label {Output Data Type: } open
+            tooltip {Image pixel data type} xywh {280 275 100 25} down_box BORDER_BOX
+            code0 {toolAddDataTypeChoice->value(2);}
+          } {
+            MenuItem {} {
+              label BYTE
+              xywh {0 0 31 20}
+            }
+            MenuItem {} {
+              label SHORT
+              xywh {0 0 31 20}
+            }
+            MenuItem {} {
+              label FLOAT
+              xywh {20 20 34 24}
+            }
+            MenuItem {} {
+              label DOUBLE
+              xywh {20 20 34 24}
+            }
+            MenuItem {} {
+              label USHORT
+              xywh {0 0 31 20}
+            }
+            MenuItem {} {
+              label INT
+              xywh {0 0 31 20}
+            }
+            MenuItem {} {
+              label LONGDOUBLE
+              xywh {20 20 34 24}
+            }
+          }
+          Fl_Check_Button toolAddEndianCheck {
+            label {Big Endian}
+            tooltip {Shift of periodic image if checked} xywh {405 275 105 25} down_box DOWN_BOX
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*");
+native.show();
+toolAddDataInput->value(native.filename());}
+            xywh {585 105 90 25}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolAddOutputInput->value(native.filename());}
+            xywh {585 145 90 25}
+          }
+          Fl_Button {} {
+            label Execute
+            callback {executeAdd();}
+            tooltip {Execute adding header} xywh {585 185 90 25}
+          }
+        }
+        Fl_Group {} {
+          label Resample open selected
+          xywh {20 75 735 450}
+        } {
+          Fl_File_Input toolResampleDataInput {
+            label {Image File:}
+            tooltip {path and filename for input image without a header} xywh {165 100 390 30}
+          }
+          Fl_File_Input toolResampleOutputInput {
+            label {Output File:}
+            tooltip {path and filename for resampled image} xywh {165 140 390 30}
+          }
+          Fl_Value_Input toolResampleXDimInput {
+            label {Factor (x,y,z) :}
+            tooltip {integer resampling factor in x dimensions} xywh {280 236 30 24} minimum 1 maximum 100 value 1
+          }
+          Fl_Value_Input toolResampleYDimInput {
+            tooltip {integer resampling factor in y dimension} xywh {315 236 30 24} minimum 1 maximum 100 value 1
+          }
+          Fl_Value_Input toolResampleZDimInput {
+            tooltip {Integer resampling factor in z dimension} xywh {350 236 30 24} minimum 1 maximum 100 value 1
+          }
+          Fl_Round_Button toolResampleDown {
+            label Downsample
+            callback {if ( o->value() == true )
+{
+    toolResampleUp->value(false);
+}}
+            tooltip {Downsample the image} xywh {265 275 125 20} type Radio down_box ROUND_DOWN_BOX
+            code0 {o->value(true);}
+          }
+          Fl_Round_Button toolResampleUp {
+            label Upsample
+            callback {if ( o->value() == true )
+{
+    toolResampleDown->value(false);
+}}
+            tooltip {upsample the image} xywh {265 300 95 20} type Radio down_box ROUND_DOWN_BOX
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolResampleDataInput->value(native.filename());}
+            xywh {585 105 90 25}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolResampleOutputInput->value(native.filename());}
+            xywh {585 145 90 25}
+          }
+          Fl_Button {} {
+            label Execute
+            callback {executeResample();}
+            tooltip {Execute image resampling} xywh {585 185 90 25}
+          }
+        }
+        Fl_Group {} {
+          label Transform open
+          xywh {20 75 735 450} hide
+        } {
+          Fl_File_Input toolTransDataInput {
+            label {Image File:}
+            tooltip {Path and filename for input image to transform} xywh {165 100 390 30}
+          }
+          Fl_File_Input toolTransOutputInput {
+            label {Output File:}
+            tooltip {Path and filename for oputput transformed image} xywh {165 140 390 30}
+          }
+          Fl_Value_Input toolTransXShiftInput {
+            label {Shift (x,y,z) :}
+            tooltip {Shift of x origin in pixels} xywh {280 271 30 24}
+          }
+          Fl_Value_Input toolTransYShiftInput {
+            tooltip {Shift of y origin in pixels} xywh {315 271 30 24}
+          }
+          Fl_Value_Input toolTransZShiftInput {
+            tooltip {Shift of z origin in pixels} xywh {350 271 30 24}
+          }
+          Fl_Value_Input toolTransFillInput {
+            label {Value Fill:}
+            tooltip {value for new pixels not in the orignal image} xywh {280 306 100 24}
+          }
+          Fl_Value_Input toolTransXDimInput {
+            label {Output Dimension (x,y,z) :}
+            tooltip {Size of x output dimension in pixels} xywh {280 236 30 24}
+          }
+          Fl_Value_Input toolTransYDimInput {
+            tooltip {Size of y output dimension in pixels} xywh {315 236 30 24}
+          }
+          Fl_Value_Input toolTransZDimInput {
+            tooltip {Size of z output dimension in pixels} xywh {350 236 30 24}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolTransDataInput->value(native.filename());}
+            xywh {585 105 90 25}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolTransOutputInput->value(native.filename());}
+            xywh {585 145 90 25}
+          }
+          Fl_Button {} {
+            label Execute
+            callback {executeTransform();}
+            tooltip {Execute image transform} xywh {585 185 90 25}
+          }
+        }
+        Fl_Group {} {
+          label Shift open
+          xywh {20 75 735 450} hide
+        } {
+          Fl_File_Input toolShiftDataInput {
+            label {Image File:}
+            tooltip {Path and filename for input image to be shifted} xywh {165 100 390 30}
+          }
+          Fl_File_Input toolShiftOutputInput {
+            label {Output File:}
+            tooltip {path and filename for shifted output image} xywh {165 140 390 30}
+          }
+          Fl_Value_Input toolShiftXShiftInput {
+            label {Shift (x,y,z) :}
+            tooltip {Shift of x origin in pixels} xywh {280 271 30 24}
+          }
+          Fl_Value_Input toolShiftYShiftInput {
+            tooltip {Shift of y origin in pixels} xywh {315 271 30 24}
+          }
+          Fl_Value_Input toolShiftZShiftInput {
+            tooltip {Shift of z origin in pixels} xywh {350 271 30 24}
+          }
+          Fl_Check_Button toolShiftCircularCheck {
+            label Circular
+            tooltip {Shift of periodic image if checked} xywh {405 270 105 25} down_box DOWN_BOX
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolShiftDataInput->value(native.filename());}
+            xywh {585 105 90 25}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolShiftOutputInput->value(native.filename());}
+            xywh {585 145 90 25}
+          }
+          Fl_Button {} {
+            label Execute
+            callback {executeShift();}
+            tooltip {Execute image shift} xywh {585 185 90 25}
+          }
+        }
+        Fl_Group {} {
+          label Scale open
+          xywh {20 75 735 455} hide
+        } {
+          Fl_File_Input toolScaleDataInput {
+            label {Image File:}
+            tooltip {Path and filename for input image to be scaled} xywh {165 100 390 30}
+          }
+          Fl_File_Input toolScaleOutputInput {
+            label {Output File:}
+            tooltip {path and filename for scaled output image} xywh {165 140 390 30}
+          }
+          Fl_Check_Button toolScaleMaxCheck {
+            label {Scale with Max}
+            callback {if ( o->value() == true )
+{
+    toolScaleSumCheck->value(false);
+}}
+            tooltip {Shift of periodic image if checked} xywh {405 270 125 25} down_box DOWN_BOX
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolScaleDataInput->value(native.filename());}
+            xywh {585 105 90 25}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolScaleOutputInput->value(native.filename());}
+            xywh {585 145 90 25}
+          }
+          Fl_Button {} {
+            label Execute
+            callback {executeScale();}
+            tooltip {Execute image shift} xywh {585 185 90 25}
+          }
+          Fl_Value_Input toolScaleValueInput {
+            label {Scale with Value}
+            tooltip {value for new pixels not in the orignal image} xywh {280 306 130 24} align 8
+          }
+          Fl_Check_Button toolScaleSumCheck {
+            label {Scale with Sum}
+            callback {if ( o->value() == true )
+{
+    toolScaleMaxCheck->value(false);
+}}
+            tooltip {Shift of periodic image if checked} xywh {280 270 125 25} down_box DOWN_BOX
+          }
+        }
+        Fl_Group {} {
+          label Convert open
+          xywh {20 75 735 455} hide
+        } {
+          Fl_File_Input toolConvertDataInput {
+            label {Image File:}
+            tooltip {path and filename for image to be converted} xywh {165 100 390 30}
+          }
+          Fl_File_Input toolConvertOutputInput {
+            label {Output File:}
+            tooltip {path and filename for converted output image} xywh {165 140 390 30}
+          }
+          Fl_Value_Input toolConvertNumberInput {
+            label {Number of File:}
+            tooltip {File number to convert} xywh {320 340 100 25} minimum 1 maximum 1024 value 1
+          }
+          Fl_Choice toolConvertDataTypeChoice {
+            label {Output Data Type: } open
+            tooltip {Data type for pixel values} xywh {320 300 100 25} down_box BORDER_BOX
+            code0 {toolConvertDataTypeChoice->value(2);}
+          } {
+            MenuItem {} {
+              label BYTE
+              xywh {10 10 31 20}
+            }
+            MenuItem {} {
+              label SHORT
+              xywh {10 10 31 20}
+            }
+            MenuItem {} {
+              label FLOAT
+              xywh {30 30 34 24}
+            }
+            MenuItem {} {
+              label DOUBLE
+              xywh {30 30 34 24}
+            }
+            MenuItem {} {
+              label USHORT
+              xywh {10 10 31 20}
+            }
+            MenuItem {} {
+              label INT
+              xywh {10 10 31 20}
+            }
+            MenuItem {} {
+              label LONGDOUBLE
+              xywh {30 30 34 24}
+            }
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolConvertDataInput->value(native.filename());}
+            xywh {585 105 90 25}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolConvertOutputInput->value(native.filename());}
+            xywh {585 145 90 25}
+          }
+          Fl_Button {} {
+            label Execute
+            callback {executeConvert();}
+            tooltip {Execute image conversion} xywh {585 185 90 25}
+          }
+        }
+        Fl_Group {} {
+          label Compare open
+          xywh {20 75 735 455} hide
+        } {
+          Fl_File_Input toolCompareDataInput {
+            label {Image File:}
+            tooltip {Path and filename for input image to be compared} xywh {165 100 390 30}
+          }
+          Fl_File_Input toolCompareRefInput {
+            label {Reference File:}
+            tooltip {path and filename for reference image to compare to} xywh {165 140 390 30}
+          }
+          Fl_Group {} {
+            label {Error Measure:} open
+            xywh {50 200 625 240} box ENGRAVED_BOX align 5
+          } {
+            Fl_Value_Output toolCompareMaximumOutput {
+              label {Maximum: }
+              xywh {280 311 100 24}
+            }
+            Fl_Value_Output toolCompareMeanOutput {
+              label {Mean: }
+              xywh {280 346 100 24}
+            }
+            Fl_Value_Output toolCompareMeanSquareOutput {
+              label {Mean Square: }
+              xywh {280 381 100 24}
+            }
+            Fl_Button {} {
+              label Execute
+              callback {executeCompare();}
+              tooltip {Execute image comparision} xywh {280 250 100 25}
+            }
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolCompareDataInput->value(native.filename());}
+            xywh {585 105 90 25}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolCompareRefInput->value(native.filename());}
+            xywh {585 145 90 25}
+          }
+        }
+        Fl_Group {} {
+          label Convolve open
+          xywh {20 75 735 450} hide
+        } {
+          Fl_File_Input toolConvImg1Input {
+            label {1st Image File:}
+            tooltip {path and filename for input image to convolve} xywh {165 100 390 30}
+          }
+          Fl_File_Input toolConvImg2Input {
+            label {2nd Image File:}
+            tooltip {path and filename for input image to convolve} xywh {165 140 390 30}
+          }
+          Fl_Check_Button convolveCenteredPsfCheck {
+            label { Centered PSF}
+            xywh {540 170 20 15} down_box DOWN_BOX labelsize 12 align 4
+            code0 {o->value(true);}
+          }
+          Fl_File_Input toolConvOutputInput {
+            label {Output File:}
+            tooltip {path and filename for convolved output image} xywh {165 195 390 30}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolConvImg1Input->value(native.filename());}
+            xywh {585 105 90 25}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolConvImg2Input->value(native.filename());}
+            xywh {585 145 90 25}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolConvOutputInput->value(native.filename());}
+            xywh {585 185 90 25}
+          }
+          Fl_Button {} {
+            label Execute
+            callback {executeConvolve();}
+            tooltip {Execute  convolution of two images} xywh {585 225 90 25}
+          }
+          Fl_Box {} {
+            label {Output Image Size:}
+            xywh {225 249 205 98} box ENGRAVED_BOX align 5
+          }
+          Fl_Check_Button convolveNormalSize {
+            label {Normal Size}
+            callback {convolveFirstSize->value(false);
+convolveSecondSize->value(false);}
+            xywh {250 270 64 15} down_box DOWN_BOX
+            code0 {o->value(true);}
+          }
+          Fl_Check_Button convolveFirstSize {
+            label {Size of 1st Image}
+            callback {convolveNormalSize->value(false);
+convolveSecondSize->value(false);}
+            xywh {250 290 64 15} down_box DOWN_BOX
+          }
+          Fl_Check_Button convolveSecondSize {
+            label {Size of 2nd Image}
+            callback {convolveFirstSize->value(false);
+convolveNormalSize->value(false);}
+            xywh {250 310 64 15} down_box DOWN_BOX
+          }
+        }
+        Fl_Group {} {
+          label Object open
+          xywh {20 75 735 450} hide
+        } {
+          Fl_File_Input toolObjectDataInput {
+            label {Image File:}
+            tooltip {path and filename of input image to add object to} xywh {165 100 390 30}
+          }
+          Fl_File_Input toolObjectOutputInput {
+            label {Output File:}
+            tooltip {Path and filename for output image with new object} xywh {165 140 390 30}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolObjectDataInput->value(native.filename());}
+            xywh {585 105 90 25}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolObjectOutputInput->value(native.filename());}
+            xywh {585 145 90 25}
+          }
+          Fl_Tabs {} {open
+            xywh {55 235 620 265}
+          } {
+            Fl_Group {} {
+              label Create open
+              xywh {60 260 610 235} hide
+            } {
+              Fl_Value_Input toolObjectCreateXDimInput {
+                label {Dimensions(x,y,z) :}
+                tooltip {Size of x dimension in pixels of output image} xywh {335 321 30 24}
+              }
+              Fl_Value_Input toolObjectCreateYDimInput {
+                tooltip {Size of y dimension in pixels of output image} xywh {370 321 30 24}
+              }
+              Fl_Value_Input toolObjectCreateZDimInput {
+                tooltip {Size of z dimension in pixels of output image} xywh {405 321 30 24}
+              }
+              Fl_Value_Input toolObjectCreateValueInput {
+                label {Value :}
+                tooltip {Pixel values to use} xywh {335 391 100 24}
+              }
+              Fl_Choice toolObjectCreateDataTypeChoice {
+                label {Data Type: } open
+                tooltip {Data type of pixel values} xywh {335 355 100 25} down_box BORDER_BOX
+              } {
+                MenuItem {} {
+                  label BYTE
+                  xywh {20 20 31 20}
+                }
+                MenuItem {} {
+                  label SHORT
+                  xywh {20 20 31 20}
+                }
+                MenuItem {} {
+                  label FLOAT
+                  xywh {40 40 34 24}
+                }
+                MenuItem {} {
+                  label DOUBLE
+                  xywh {40 40 34 24}
+                }
+                MenuItem {} {
+                  label USHORT
+                  xywh {20 20 31 20}
+                }
+                MenuItem {} {
+                  label INT
+                  xywh {20 20 31 20}
+                }
+                MenuItem {} {
+                  label LONGDOUBLE
+                  xywh {40 40 34 24}
+                }
+              }
+              Fl_Button {} {
+                label Execute
+                callback {executeObjectCreate();}
+                tooltip {Execute object creation} xywh {335 425 100 25}
+              }
+            }
+            Fl_Group {} {
+              label Ellipsoid open
+              xywh {55 260 620 235} hide
+            } {
+              Fl_Value_Input toolObjectEllipsoidCenterXInput {
+                label {Center(x,y,z) :}
+                tooltip {Center of ellipsoid in x dimension in pixels} xywh {335 321 30 24}
+              }
+              Fl_Value_Input toolObjectEllipsoidCenterYInput {
+                tooltip {Center of ellipsoid in y dimension in pixels} xywh {370 321 30 24}
+              }
+              Fl_Value_Input toolObjectEllipsoidCenterZInput {
+                tooltip {Center of ellipsoid in z dimension in pixels} xywh {405 321 30 24}
+              }
+              Fl_Value_Input toolObjectEllipsoidRadiusXInput {
+                label {Radius (x,y,z) :}
+                tooltip {Radius of ellipsoid in x dimension in pixels} xywh {335 356 30 24}
+              }
+              Fl_Value_Input toolObjectEllipsoidRadiusYInput {
+                tooltip {Radius of ellipsoid in y dimension in pixels} xywh {370 356 30 24}
+              }
+              Fl_Value_Input toolObjectEllipsoidRadiusZInput {
+                tooltip {Radius of ellipsoid in z dimension in pixels} xywh {405 356 30 24}
+              }
+              Fl_Value_Input toolObjectEllipsoidValueInput {
+                label {Value :}
+                tooltip {Pixel values of ellipsoid} xywh {335 391 100 24}
+              }
+              Fl_Button {} {
+                label Execute
+                callback {executeObjectEllipsoid();}
+                tooltip {Execute ellipsoid image insertion} xywh {335 425 100 25}
+              }
+            }
+            Fl_Group {} {
+              label Box open
+              xywh {55 260 620 235}
+            } {
+              Fl_Value_Input toolObjectBoxCenterXInput {
+                label {Center(x,y,z) :}
+                tooltip {Center of box in x dimension in pixels} xywh {335 321 30 24}
+              }
+              Fl_Value_Input toolObjectBoxCenterYInput {
+                tooltip {Center of box in y dimension in pixels} xywh {370 321 30 24}
+              }
+              Fl_Value_Input toolObjectBoxCenterZInput {
+                tooltip {Center of box in z dimension in pixels} xywh {405 321 30 24}
+              }
+              Fl_Value_Input toolObjectBoxSizeXInput {
+                label {Half Size(x,y,z) :}
+                tooltip {Half of the box size in x dimension in pixels} xywh {335 356 30 24}
+              }
+              Fl_Value_Input toolObjectBoxSizeYInput {
+                tooltip {Half of the box size in y dimension in pxels} xywh {370 356 30 24}
+              }
+              Fl_Value_Input toolObjectBoxSizeZInput {
+                tooltip {Half of the box size in z dimension in pixels} xywh {405 356 30 24}
+              }
+              Fl_Value_Input toolObjectBoxValueInput {
+                label {Value :}
+                tooltip {Pixel values for the box} xywh {335 391 100 24}
+              }
+              Fl_Button {} {
+                label Execute
+                callback {executeObjectBox();}
+                tooltip {Execute box image insertion} xywh {335 425 100 25}
+              }
+            }
+            Fl_Group {} {
+              label Point open
+              xywh {55 260 620 240} hide
+            } {
+              Fl_Value_Input toolObjectPointXInput {
+                label {Position(x,y,z) :}
+                tooltip {Center of box in x dimension in pixels} xywh {345 331 30 24} step 1
+              }
+              Fl_Value_Input toolObjectPointYInput {
+                tooltip {Center of box in y dimension in pixels} xywh {380 331 30 24} step 1
+              }
+              Fl_Value_Input toolObjectPointZInput {
+                tooltip {Center of box in z dimension in pixels} xywh {415 331 30 24} step 1
+              }
+              Fl_Value_Input toolObjectPointValueInput {
+                label {Value :}
+                tooltip {Pixel values for the box} xywh {345 401 100 24}
+              }
+              Fl_Button {} {
+                label Execute
+                callback {executeObjectPoint();}
+                tooltip {Execute box image insertion} xywh {345 435 100 25}
+              }
+            }
+          }
+        }
+        Fl_Group {} {
+          label Variant open
+          xywh {20 75 785 450} hide
+        } {
+          Fl_File_Input toolVariantObjectInput {
+            label {Object File:}
+            tooltip {path and filename for input image to vary} xywh {165 100 390 30}
+          }
+          Fl_File_Input toolVariantPsfInput {
+            label {PSF File:}
+            tooltip {path and filename for input image to reference} xywh {165 140 390 30}
+          }
+          Fl_Check_Button variantCenteredPsfCheck {
+            label { Centered PSF}
+            xywh {540 170 20 15} down_box DOWN_BOX labelsize 12 align 4
+            code0 {o->value(true);}
+          }
+          Fl_File_Input toolVariantOutputInput {
+            label {Output File:}
+            tooltip {path and filename for variant output image} xywh {165 195 390 30}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolVariantObjectInput->value(native.filename());}
+            xywh {585 105 90 25}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolVariantPsfInput->value(native.filename());}
+            xywh {585 145 90 25}
+          }
+          Fl_Button {} {
+            label {Browse...}
+            callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+toolVariantOutputInput->value(native.filename());}
+            xywh {585 185 90 25}
+          }
+          Fl_Button {} {
+            label Execute
+            callback {executeVariant();}
+            tooltip {Execute variation of two images} xywh {585 225 90 25}
+          }
+          Fl_Value_Input toolVariantSizeInput {
+            label {Size of Strata:}
+            tooltip {value for new pixels not in the orignal image} xywh {280 306 100 24}
+          }
+          Fl_Value_Input toolVariantStartInput {
+            label {Start of Strata:}
+            tooltip {value for new pixels not in the orignal image} xywh {280 271 100 24}
+          }
+          Fl_Value_Input toolVariantNumberInput {
+            label {Number of Strata:}
+            tooltip {value for new pixels not in the orignal image} xywh {280 236 100 24}
+          }
+        }
+      }
+    }
+  }
+  Function {~ToolGUI()} {open
+  } {
+    code {} {}
+  }
+  Function {show(int argc, char* argv[])} {open return_type void
+  } {
+    code {this->toolWindow->show(argc, argv);} {}
+  }
+  Function {executeInfo()} {open return_type void
+  } {
+    code {cosm::ToolMgr toolMgr(toolInfoDataInput->value());
+cosm::wuHeader header;
+bool res = toolMgr.info(header);
+if ( res ) 
+{
+    toolInfoXDimOutput->value(header.columns());
+    toolInfoYDimOutput->value(header.rows());
+    toolInfoZDimOutput->value(header.sections());
+
+    toolInfoMaximumOutput->value(header.maximum());
+    toolInfoMinimumOutput->value(header.minimum());
+    toolInfoAverageOutput->value(header.mean());
+    toolInfoDataTypeOutput->value(header.dataTypeStr().c_str());
+    toolInfoSizeInBytesOutput->value(header.dataSize());
+}
+else
+{
+    fl_alert("Unknown image filename");
+}} {}
+  }
+  Function {executeRemove()} {open return_type void
+  } {
+    code {cosm::ToolMgr toolMgr(toolRemoveDataInput->value(), toolRemoveOutputInput->value());
+    
+int numberOfFile = toolRemoveNumberInput->value();
+bool res = toolMgr.removeHeader(numberOfFile);
+
+if ( !res )
+{
+    fl_alert("Unknown image filenames");
+}} {}
+  }
+  Function {executeAdd()} {open return_type void
+  } {
+    code {cosm::ToolMgr toolMgr(toolAddDataInput->value(),toolAddOutputInput->value());
+
+int x = (int)toolAddXDimInput->value();
+int y = (int)toolAddYDimInput->value();
+int z = (int)toolAddZDimInput->value();
+cosm::wuHeader::type type = (cosm::wuHeader::type)toolAddDataTypeChoice->value();
+bool endian = (bool)toolAddEndianCheck->value();
+bool res = toolMgr.addHeader(x,y,z,type,endian);
+if (!res)
+{
+    fl_alert("Unknown filenames or parameters");
+}} {}
+  }
+  Function {executeResample()} {open return_type void
+  } {
+    code {cosm::ToolMgr toolMgr(toolResampleDataInput->value(),toolResampleOutputInput->value());
+
+int x = (int) toolResampleXDimInput->value();
+int y = (int) toolResampleYDimInput->value();
+int z = (int) toolResampleZDimInput->value();
+
+bool up = toolResampleUp->value();
+bool res = toolMgr.resample(x,y,z, up);
+if (!res)
+{
+    fl_alert("Unknown filenames or parameters");
+}} {}
+  }
+  Function {executeTransform()} {open return_type void
+  } {
+    code {cosm::ToolMgr toolMgr(toolTransDataInput->value(), toolTransOutputInput->value());
+
+int x = (int)toolTransXDimInput->value();
+int y = (int)toolTransYDimInput->value();
+int z = (int)toolTransZDimInput->value();
+
+int xShift = (int)toolTransXShiftInput->value();
+int yShift = (int)toolTransYShiftInput->value();
+int zShift = (int)toolTransZShiftInput->value();
+
+double value = toolTransFillInput->value();
+
+bool res = toolMgr.transformation(x,y,z, xShift, yShift, zShift, value);
+if (!res)
+{
+    fl_alert("Unknown filenames or parameters");
+}} {}
+  }
+  Function {executeConvert()} {open return_type void
+  } {
+    code {cosm::ToolMgr toolMgr(toolConvertDataInput->value(), toolConvertOutputInput->value());
+
+cosm::wuHeader::type type = (cosm::wuHeader::type)toolConvertDataTypeChoice->value();
+int numberOfFile = toolConvertNumberInput->value();
+
+bool res = toolMgr.convert(type, numberOfFile);
+if (!res)
+{
+    fl_alert("Unknown filenames or parameters");
+}} {}
+  }
+  Function {executeCompare()} {open return_type void
+  } {
+    code {cosm::ToolMgr toolMgr(toolCompareDataInput->value(),toolCompareRefInput->value(),"");
+double maximum, mean, meanSquare;
+bool res = toolMgr.compare(maximum, mean, meanSquare);
+if ( res ) 
+{
+    toolCompareMaximumOutput->value(maximum);
+    toolCompareMeanOutput->value(mean);
+    toolCompareMeanSquareOutput->value(meanSquare);
+}
+else
+{
+    fl_alert("Unknown filenames");
+}} {}
+  }
+  Function {executeConvolve()} {open return_type void
+  } {
+    code {cosm::ToolMgr toolMgr(toolConvImg1Input->value(), toolConvImg2Input->value(), toolConvOutputInput->value());
+unsigned short size = convolveNormalSize->value() ? 0 : ( convolveFirstSize->value() ? 1 : 2);
+    bool centeredPsf = convolveCenteredPsfCheck->value();
+    bool res = toolMgr.convolve(size, centeredPsf);
+if (!res)
+{
+    fl_alert("Unknown filenames");
+}
+	std::string otfname = toolConvOutputInput->value();
+	std::string toolsprefix;
+	
+	size_t i = otfname.rfind('.', otfname.length( ));
+	if (i != std::string::npos) {
+	    toolsprefix = otfname.substr(0,i);
+	}
+	
+	std::string xmlname = toolsprefix + ".xml";
+	std::cout << "Xml file: "<<xmlname<< std::endl;
+	writeXmlConvolve(xmlname);} {}
+  }
+  Function {executeShift()} {open return_type void
+  } {
+    code {cosm::ToolMgr toolMgr(toolShiftDataInput->value(), toolShiftOutputInput->value());
+
+int xShift = (int)toolShiftXShiftInput->value();
+int yShift = (int)toolShiftYShiftInput->value();
+int zShift = (int)toolShiftZShiftInput->value();
+
+bool circular = toolShiftCircularCheck->value();
+
+bool res = toolMgr.shift(xShift,yShift,zShift,circular);
+if (!res)
+{
+    fl_alert("Unknown filenames or parameters");
+}} {}
+  }
+  Function {executeScale()} {open return_type void
+  } {
+    code {cosm::ToolMgr toolMgr(toolScaleDataInput->value(), toolScaleOutputInput->value());
+
+double value = toolScaleValueInput->value();
+bool sum = toolScaleSumCheck->value();
+bool max = toolScaleMaxCheck->value();
+
+bool res = toolMgr.scale(sum,max,value);
+if (!res)
+{
+    fl_alert("Unknown filenames or parameters");
+}} {}
+  }
+  Function {executeObjectCreate()} {open return_type void
+  } {
+    code {cosm::ToolMgr toolMgr("", toolObjectOutputInput->value());
+
+int x = (int)toolObjectCreateXDimInput->value();
+int y = (int)toolObjectCreateYDimInput->value();
+int z = (int)toolObjectCreateZDimInput->value();
+cosm::wuHeader::type type = (cosm::wuHeader::type)toolObjectCreateDataTypeChoice->value();
+double value = toolObjectCreateValueInput->value();
+bool res = toolMgr.create(x,y,z,type,value);
+if (!res)
+{
+    fl_alert("Unknown filenames or parameters");
+}} {}
+  }
+  Function {executeObjectEllipsoid()} {open return_type void
+  } {
+    code {cosm::ToolMgr toolMgr(toolObjectDataInput->value(), toolObjectOutputInput->value());
+
+int x = (int)toolObjectEllipsoidCenterXInput->value();
+int y = (int)toolObjectEllipsoidCenterYInput->value();
+int z = (int)toolObjectEllipsoidCenterZInput->value();
+int xRadius = (int)toolObjectEllipsoidRadiusXInput->value();
+int yRadius = (int)toolObjectEllipsoidRadiusYInput->value();
+int zRadius = (int)toolObjectEllipsoidRadiusZInput->value();
+
+double value = toolObjectEllipsoidValueInput->value();
+
+bool res = toolMgr.ellipsoid(x,y,z,xRadius,yRadius,zRadius,value);
+if (!res)
+{
+    fl_alert("Unknown filenames or parameters");
+}} {}
+  }
+  Function {executeObjectBox()} {open return_type void
+  } {
+    code {cosm::ToolMgr toolMgr(toolObjectDataInput->value(), toolObjectOutputInput->value());
+
+int x = (int)toolObjectBoxCenterXInput->value();
+int y = (int)toolObjectBoxCenterYInput->value();
+int z = (int)toolObjectBoxCenterZInput->value();
+int xSize = (int)toolObjectBoxSizeXInput->value();
+int ySize = (int)toolObjectBoxSizeYInput->value();
+int zSize = (int)toolObjectBoxSizeZInput->value();
+
+double value = toolObjectBoxValueInput->value();
+
+bool res = toolMgr.box(x,y,z,xSize,ySize,zSize,value);
+if (!res)
+{
+    fl_alert("Unknown filenames or parameters");
+}} {}
+  }
+  Function {executeObjectPoint()} {open return_type void
+  } {
+    code {cosm::ToolMgr toolMgr(toolObjectDataInput->value(), toolObjectOutputInput->value());
+
+int x = (int)toolObjectPointXInput->value();
+int y = (int)toolObjectPointYInput->value();
+int z = (int)toolObjectPointZInput->value();
+
+double value = toolObjectPointValueInput->value();
+
+bool res = toolMgr.point(x,y,z, value);
+if (!res)
+{
+    fl_alert("Unknown filenames or parameters");
+}} {}
+  }
+  Function {executeVariant()} {open
+  } {
+    code {cosm::ToolMgr toolMgr(toolVariantObjectInput->value(), toolVariantPsfInput->value(), toolVariantOutputInput->value());
+int numberOfStrata = toolVariantNumberInput->value();
+int startOfStrata = toolVariantStartInput->value();
+int sizeOfStrata = toolVariantSizeInput->value();
+    bool centeredPsf = variantCenteredPsfCheck->value();
+bool res = toolMgr.variant(numberOfStrata, startOfStrata, sizeOfStrata, centeredPsf);
+if (!res)
+{
+    fl_alert("Unknown filenames");
+}
+
+	std::string otfname = toolVariantOutputInput->value();
+	std::string toolsprefix;
+	
+	size_t i = otfname.rfind('.', otfname.length( ));
+	if (i != std::string::npos) {
+	    toolsprefix = otfname.substr(0,i);
+	}
+	
+	std::string xmlname = toolsprefix + ".xml";
+	std::cout << "Xml file: "<<xmlname<< std::endl;
+	writeXmlVariant(xmlname);} {}
+  }
+  Function {writeXmlConvolve( const std::string& filename )} {open return_type void
+  } {
+    code {cosm::ToolsXml<double> toolsXml;
+    
+	toolsXml.imgFile(toolConvImg1Input->value());
+	toolsXml.psfFile(toolConvImg2Input->value());
+	toolsXml.outFile(toolConvOutputInput->value());
+	
+	unsigned short size = convolveNormalSize->value() ? 0 : ( convolveFirstSize->value() ? 1 : 2);
+	if (size == 0){
+		toolsXml.outImgSize("Normal Size");
+	}else if (size == 1){
+		toolsXml.outImgSize("Size of 1st Image");
+	}else{
+		toolsXml.outImgSize("Size of 2nd Image");
+	}
+	
+	
+
+	toolsXml.saveConvolve( filename );} {}
+  }
+  Function {writeXmlVariant( const std::string& filename )} {open return_type void
+  } {
+    code {cosm::ToolsXml<double> toolsXml;
+    
+	toolsXml.imgFile2(toolVariantObjectInput->value());
+	toolsXml.psfFile2(toolVariantPsfInput->value());
+	toolsXml.outFile2(toolVariantOutputInput->value());
+	
+	toolsXml.variantStrataValue(toolVariantNumberInput->value());
+	toolsXml.variantStrataStart(toolVariantStartInput->value());
+	toolsXml.variantStrataSize(toolVariantSizeInput->value());
+	
+	toolsXml.saveVariant( filename );} {}
+  }
+} 

@@ -1,0 +1,953 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0110 
+header_name {.h} 
+code_name {.cxx}
+decl {\#include "FL/Fl_Native_File_Chooser.H"} {} 
+
+decl {\#include "estAbout.h"} {} 
+
+decl {\#include "fltk/Cartesian.h"} {public
+} 
+
+decl {\#include "fltk/Table.h"} {public
+} 
+
+decl {\#include "wu/wuImage.h"} {} 
+
+decl {\#include "estAlgo.h"} {} 
+
+decl {\#include "xml/estXml.h"} {} 
+
+decl {\#include "est/estimate.h"} {} 
+
+decl {\#include "est/estimateIterative.h"} {} 
+
+decl {\#include <blitz/timer.h>} {} 
+
+decl {\#include <FL/Fl_Sys_Menu_Bar.H>} {} 
+
+decl {\#include <FL/fl_ask.H>} {} 
+
+decl {\#include <stdlib.h>} {} 
+
+decl {\#include <string>} {public
+} 
+
+decl {\#include <iostream>} {} 
+
+decl {\#include <fstream>} {} 
+
+class EstGUI {open
+} {
+  Function {EstGUI()} {open
+  } {
+    Fl_Window estWindow {
+      label {COSM Estimation} open
+      xywh {318 171 716 744} type Double labelsize 12 resizable visible
+    } {
+      Fl_Menu_Bar {} {open
+        xywh {0 0 725 25} resizable
+        class Fl_Sys_Menu_Bar
+      } {
+        Submenu {} {
+          label File open
+          xywh {10 10 100 20}
+        } {
+          MenuItem {} {
+            label Quit
+            callback {exit(0);}
+            xywh {10 10 100 20}
+          }
+        }
+        Submenu {} {
+          label Help open
+          xywh {0 0 67 24}
+        } {
+          MenuItem {} {
+            label {About...}
+            callback {if (!aboutDialog) {
+    make_about();
+}
+aboutDialog->show();}
+            xywh {0 0 34 24}
+          }
+        }
+      }
+      Fl_File_Input estImgInput {
+        label {Data Input File:}
+        tooltip {Path and filename for input data image} xywh {175 125 390 30}
+      }
+      Fl_Button {} {
+        label {Browse...}
+        callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+estImgInput->value(native.filename());}
+        xywh {595 130 90 25}
+      }
+      Fl_File_Input estPsfInput {
+        label {PSF Input File:}
+        tooltip {Path and filename for PSF image} xywh {180 160 385 30}
+      }
+      Fl_Button {} {
+        label {Browse...}
+        callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+estPsfInput->value(native.filename());}
+        xywh {595 165 90 25}
+      }
+      Fl_File_Input estEstInput {
+        label {Estimation Output File:}
+        tooltip {Path and filename for estimation output image} xywh {180 215 385 30}
+      }
+      Fl_Button {} {
+        label {Browse...}
+        callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Write");
+native.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+native.filter("*.wu");
+native.show();
+estEstInput->value(native.filename());}
+        xywh {595 220 90 25}
+      }
+      Fl_Progress estProgress {
+        label Progress
+        tooltip {Algorithm progress} xywh {35 695 650 25} selection_color 230
+      }
+      Fl_Tabs {} {open
+        xywh {35 260 650 420} align 5
+      } {
+        Fl_Group estLinearGroup {
+          label Linear open
+          xywh {35 285 650 395} hide
+        } {
+          Fl_Group {} {
+            label {Algorithm:} open
+            xywh {90 345 505 130} box ENGRAVED_BOX align 21
+          } {
+            Fl_Round_Button estLlsCheck {
+              label {Linear Least Squares (LLS)}
+              callback {if ( estLlsCheck->value() )
+{
+    estMapCheck->value(false);
+    estEmCheck->value(false);
+    estJvcCheck->value(false);
+    estSvCheck->value(false);
+    estOsCheck->value(false);
+}}
+              tooltip {Select LLS algorithm} xywh {115 380 205 25} down_box ROUND_DOWN_BOX
+            }
+            Fl_Round_Button estMapCheck {
+              label {Linear Maximum a Posteriori (MAP)}
+              callback {if ( estMapCheck->value() )
+{
+    estLlsCheck->value(false);
+    estEmCheck->value(false);
+    estJvcCheck->value(false);
+    estSvCheck->value(false);
+    estOsCheck->value(false);
+}}
+              tooltip {Select MAP algorithm} xywh {115 420 205 25} down_box ROUND_DOWN_BOX
+            }
+          }
+          Fl_Value_Input estLinearParameterInput {
+            label {Parameter: }
+            tooltip {Linear algorithm parameter used for regularization} xywh {170 485 80 20}
+          }
+          Fl_Button {} {
+            label Run
+            callback {estProgress->value(0);
+processing();}
+            tooltip {Run  selected estimation algorithm} xywh {85 600 95 25}
+          }
+        }
+        Fl_Group estIterativeGroup {
+          label Iterative open
+          xywh {35 285 650 380}
+        } {
+          Fl_Button {} {
+            label Run
+            callback {estProgress->value(0);
+if ( tableDialog == 0 )
+{
+    make_table_dialog();
+}
+estTable->clear();
+Fl::wait(0.0);
+gStop = false;
+estXAxis->maximum(estIterationsInput->value());
+processing();}
+            tooltip {Run selected estimation algorithm} xywh {85 640 95 25}
+          }
+          Fl_Button {} {
+            label Stop
+            callback {gStop = true;}
+            tooltip {Stop estimation algorithm at next update interval} xywh {185 640 95 25}
+          }
+          Fl_Value_Input estIterationsInput {
+            label {Iterations:}
+            tooltip {Number of iterations to perform} xywh {505 605 120 20} value 100
+          }
+          Fl_Value_Input estUpdateInput {
+            label {Update:}
+            tooltip {Number of iterations between measurment updates} xywh {505 625 120 20} value 10
+          }
+          Fl_Value_Input estWriteInput {
+            label {Write:}
+            tooltip {Minumum value in the estimation image at every iteration} xywh {505 645 120 20} value 100
+          }
+          Fl_Tabs {} {open
+            xywh {60 300 565 290}
+          } {
+            Fl_Group estInvariantGroup {
+              label Invariant open
+              xywh {60 320 565 225} hide
+            } {
+              Fl_Group {} {
+                label {Algorithm:} open
+                xywh {90 345 505 130} box ENGRAVED_BOX align 21
+              } {
+                Fl_Round_Button estEmCheck {
+                  label {Expectation Maximization (EM)}
+                  callback {if ( estEmCheck->value() )
+{
+    estLlsCheck->value(false);
+    estMapCheck->value(false);
+    estJvcCheck->value(false);
+    estSvCheck->value(false);
+    estOsCheck->value(false);
+}}
+                  tooltip {Select EM algorithm} xywh {115 380 225 25} down_box ROUND_DOWN_BOX
+                }
+                Fl_Round_Button estJvcCheck {
+                  label {Jansson-van Cittert (JVC)}
+                  callback {if ( estJvcCheck->value() )
+{
+    estLlsCheck->value(false);
+    estMapCheck->value(false);
+    estEmCheck->value(false);
+    estSvCheck->value(false);
+    estOsCheck->value(false);
+}}
+                  tooltip {Select JVC algorithm} xywh {115 420 205 25} down_box ROUND_DOWN_BOX
+                }
+              }
+              Fl_Value_Input estInvariantParameterInput {
+                label {Penalty:      }
+                tooltip {Intensity penalty for EM algorithm} xywh {170 485 80 20}
+              }
+              Fl_Check_Button estInvariantDoubleInput {
+                label {Double Z}
+                tooltip {Use double  pixel size in z dimension in EM algorithm} xywh {390 485 90 20} down_box DOWN_BOX
+              }
+              Fl_Choice estInvariantPenaltyInput {open
+                xywh {280 485 100 20} down_box BORDER_BOX
+              } {
+                MenuItem {} {
+                  label None
+                  xywh {0 0 31 20}
+                }
+                MenuItem {} {
+                  label Intensity
+                  xywh {0 0 31 20}
+                }
+                MenuItem {} {
+                  label Roughness
+                  xywh {0 0 31 20}
+                }
+              }
+            }
+            Fl_Group estVariantGroup {
+              label Variant open
+              xywh {60 325 565 265} hide
+            } {
+              Fl_Group {} {
+                label {Algorithm:} open
+                xywh {90 345 505 130} box ENGRAVED_BOX align 21
+              } {
+                Fl_Round_Button estSvCheck {
+                  label {Space-Variant EM (EMSV)}
+                  callback {if ( estSvCheck->value() )
+{
+    estLlsCheck->value(false);
+    estMapCheck->value(false);
+    estEmCheck->value(false);
+    estJvcCheck->value(false);
+    estOsCheck->value(false);
+}}
+                  tooltip {Select Space-Variant EM algorithm} xywh {115 380 205 25} down_box ROUND_DOWN_BOX
+                }
+                Fl_Round_Button estOsCheck {
+                  label {Ordered Subsets EM (EMOS)}
+                  callback {if ( estOsCheck->value() )
+{
+    estLlsCheck->value(false);
+    estMapCheck->value(false);
+    estEmCheck->value(false);
+    estJvcCheck->value(false);
+    estSvCheck->value(false);
+}}
+                  tooltip {Select Ordered Subset EM algorithm} xywh {115 420 205 25} down_box ROUND_DOWN_BOX
+                }
+              }
+              Fl_Value_Input estVariantParameterInput {
+                label {Penalty:      }
+                tooltip {Intensity penalty value} xywh {170 485 80 20}
+              }
+              Fl_Check_Button estVariantDoubleInput {
+                label {Double Z}
+                tooltip {Use double z dimension in algorithms} xywh {390 485 85 20} down_box DOWN_BOX
+              }
+              Fl_Choice estVariantBigInput {open
+                tooltip {Keep PSF in memory or read from disk each iteration.} xywh {470 485 125 20} down_box BORDER_BOX
+              } {
+                MenuItem {} {
+                  label {OTF in Memory}
+                  callback {estOtfInput->deactivate();}
+                  xywh {0 0 34 24}
+                }
+                MenuItem {} {
+                  label {OTF on Disk}
+                  callback {estOtfInput->activate();}
+                  xywh {0 0 34 24}
+                }
+              }
+              Fl_Value_Input estVariantStrataStartInput {
+                label {Start: }
+                tooltip {Number of strata} xywh {240 515 45 20} minimum 1 maximum 128 value 1
+              }
+              Fl_File_Input estOtfInput {
+                label {OTF Name:}
+                tooltip {Optical transfer function image file name} xywh {470 510 125 35}
+              }
+              Fl_Value_Input estVariantStrataSizeInput {
+                label {Size: }
+                tooltip {Number of strata} xywh {335 515 45 20} minimum 1 maximum 128 value 1
+              }
+              Fl_Value_Input estVariantStrataNumberInput {
+                label {Strata: }
+                tooltip {Number of strata} xywh {140 515 45 20} minimum 1 maximum 128 value 1
+              }
+              Fl_Choice estVariantPenaltyInput {open
+                xywh {280 485 100 20} down_box BORDER_BOX
+              } {
+                MenuItem {} {
+                  label None
+                  xywh {0 0 31 20}
+                }
+                MenuItem {} {
+                  label Intensity
+                  xywh {0 0 31 20}
+                }
+                MenuItem {} {
+                  label Roughness
+                  xywh {0 0 31 20}
+                }
+              }
+            }
+            Fl_Group {} {
+              label Convergence open
+              xywh {65 324 560 265}
+            } {
+              Fl_File_Input estPhaInput {
+                label {Reference File:}
+                tooltip {Reference image file name  to compare with ( if blank, previous estimate will be used)} xywh {175 335 330 30}
+              }
+              Fl_Button {} {
+                label {Browse...}
+                callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Write");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.wu");
+native.show();
+estPhaInput->value(native.filename());}
+                xywh {515 340 95 25}
+              }
+              Fl_Box estCanvas {
+                xywh {130 382 255 154} box ENGRAVED_BOX color 7
+                code0 {estCanvas->current();}
+                class Ca_Canvas
+              }
+              Fl_Box estXAxis {
+                label Iterations
+                xywh {120 536 275 34} labelsize 10 align 10
+                code0 {estXAxis->grid_visible(CA_MINOR_TICK|CA_MAJOR_TICK|CA_LABEL_GRID|CA_ALWAYS_VISIBLE);}
+                code1 {estXAxis->minor_grid_color(FL_RED); estXAxis->major_grid_color(FL_RED); estXAxis->label_grid_color(FL_RED); estXAxis->label_size(10);}
+                code2 {estXAxis->minimum(0); estXAxis->maximum(100);}
+                code3 {estXAxis->current();}
+                class Ca_X_Axis
+              }
+              Fl_Box estYAxis {
+                label Error
+                xywh {70 382 60 162} labelsize 11 align 1
+                code0 {estYAxis->grid_visible(CA_MINOR_TICK|CA_MAJOR_TICK|CA_LABEL_GRID|CA_ALWAYS_VISIBLE);}
+                code1 {estYAxis->minor_grid_color(FL_RED); estYAxis->major_grid_color(FL_RED); estYAxis->label_grid_color(FL_RED);estYAxis->label_size(10); estYAxis->label_format("%3.1e");}
+                code2 {estYAxis->minimum(1e-9); estYAxis->maximum(1);}
+                code3 {estYAxis->scale(CA_LOG); estYAxis->current();}
+                class Ca_Y_Axis
+              }
+              Fl_Button {} {
+                label Clear
+                callback {estCanvas->clear();}
+                tooltip {Clear plots in measurement graph area} xywh {515 460 95 25}
+              }
+              Fl_Input_Choice estConvergenceMinimumChoice {
+                label {minimum: }
+                callback {double value = 1;
+sscanf(o->value(), "%lf", &value);
+estYAxis->minimum(value);} open
+                xywh {515 549 95 22} labelsize 12 textsize 12
+                code0 {o->value("0.000000001");}
+              } {
+                MenuItem {} {
+                  label 1
+                  xywh {0 0 31 20}
+                }
+                MenuItem {} {
+                  label {0.1}
+                  xywh {10 10 31 20}
+                }
+                MenuItem {} {
+                  label {0.01}
+                  xywh {20 20 31 20}
+                }
+                MenuItem {} {
+                  label {0.001}
+                  xywh {30 30 31 20}
+                }
+                MenuItem {} {
+                  label {0.0001}
+                  xywh {40 40 31 20}
+                }
+                MenuItem {} {
+                  label {0.00001}
+                  xywh {50 50 31 20}
+                }
+                MenuItem {} {
+                  label {0.000001}
+                  xywh {60 60 31 20}
+                }
+                MenuItem {} {
+                  label {0.0000001}
+                  xywh {70 70 31 20}
+                }
+                MenuItem {} {
+                  label {0.00000001}
+                  xywh {80 80 31 20}
+                }
+                MenuItem {} {
+                  label {0.000000001}
+                  xywh {90 90 31 20}
+                }
+              }
+              Fl_Input_Choice estConvergenceMaximumChoice {
+                label {maximum:}
+                callback {double value = 1;
+sscanf(o->value(), "%lf", &value);
+estYAxis->maximum(value);} open
+                xywh {515 518 95 22} labelsize 12 textsize 12
+                code0 {o->value("1");}
+              } {
+                MenuItem {} {
+                  label 10000
+                  xywh {0 0 31 20}
+                }
+                MenuItem {} {
+                  label 1000
+                  xywh {10 10 31 20}
+                }
+                MenuItem {} {
+                  label 100
+                  xywh {20 20 31 20}
+                }
+                MenuItem {} {
+                  label 10
+                  xywh {30 30 31 20}
+                }
+                MenuItem {} {
+                  label 1
+                  xywh {40 40 31 20}
+                }
+                MenuItem {} {
+                  label {0.1}
+                  xywh {50 50 31 20}
+                }
+                MenuItem {} {
+                  label {0.01}
+                  xywh {60 60 31 20}
+                }
+                MenuItem {} {
+                  label {0.001}
+                  xywh {70 70 31 20}
+                }
+                MenuItem {} {
+                  label {0.0001}
+                  xywh {80 80 31 20}
+                }
+              }
+              Fl_Menu_Button estConvergenceMeasureMenu {
+                label Measure open
+                xywh {515 390 95 25}
+              } {
+                MenuItem {} {
+                  label Maximum
+                  xywh {0 0 31 20} type Toggle
+                  code0 {o->set();}
+                }
+                MenuItem {} {
+                  label Mean
+                  xywh {10 10 31 20} type Toggle
+                  code0 {o->set();}
+                }
+                MenuItem {} {
+                  label {Mean Square}
+                  xywh {20 20 31 20} type Toggle
+                  code0 {o->set();}
+                }
+                MenuItem {} {
+                  label {Log Likelihood}
+                  xywh {30 30 31 20} type Toggle
+                  code0 {o->set();}
+                }
+                MenuItem {} {
+                  label {I-Divergence}
+                  xywh {40 40 31 20} type Toggle
+                  code0 {o->set();}
+                }
+              }
+              Fl_Button {} {
+                label {Table...}
+                callback {if (!tableDialog) {
+    make_table_dialog();
+}
+tableDialog->show();}
+                xywh {515 425 95 25}
+              }
+            }
+          }
+        }
+      }
+      Fl_File_Input estXmlInput {
+        label {XML File:}
+        tooltip {Path and filename for input data image} xywh {175 50 390 30}
+      }
+      Fl_Button {} {
+        label {Browse...}
+        callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Read");
+native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+native.filter("*.xml");
+native.show();
+estXmlInput->value(native.filename());}
+        xywh {595 50 90 25}
+      }
+      Fl_Button {} {
+        label Open
+        callback {readXml(estXmlInput->value());}
+        xywh {595 80 90 25}
+      }
+      Fl_Check_Button estCenteredPsfCheck {
+        label { Centered PSF}
+        xywh {550 190 20 15} down_box DOWN_BOX labelsize 12 align 4
+        code0 {o->value(true);}
+      }
+    }
+    code {tableDialog = 0;} {}
+  }
+  Function {show(int argc, char* argv[])} {open return_type void
+  } {
+    code {this->estWindow->show(argc, argv);} {}
+  }
+  Function {processing()} {open return_type void
+  } {
+    code {const int N = 3;
+
+    std::string estname = estEstInput->value();
+    std::string psfname = estPsfInput->value();
+    std::string otfname = estOtfInput->value();
+    std::string imgname = estImgInput->value();
+    std::string phaname = estPhaInput->value();
+    
+    if ( estname.empty() )
+    {
+        fl_alert("Unknown Output Estimation Filename");
+        return;
+    }
+    if ( psfname.empty() ) 
+    {
+        fl_alert("Unknown Input PSF Filename");
+        return;
+    }
+    if ( imgname.empty() )
+    {
+        fl_alert("Unknown Input Image Filename");
+        return;
+    }
+    
+    std::string psfprefix;
+    std::string psfsuffix;
+    std::string otfprefix;
+    std::string otfsuffix;
+    std::string estprefix;
+    std::string estsuffix;
+    
+ 
+    size_t i = estname.rfind('.', estname.length( ));
+    if (i != std::string::npos) {
+        estprefix = estname.substr(0,i);
+        estsuffix = estname.substr(i+1, estname.length());
+    }
+    std::cout << "Estimage Prefix: "<<estprefix<<", Estimage Suffix: "<<estsuffix<<", iter: "<<estWriteInput->value()<<std::endl;
+ 
+    i = psfname.rfind('.', psfname.length( ));
+    if (i != std::string::npos) {
+        psfprefix = psfname.substr(0,i);
+        psfsuffix = psfname.substr(i+1, psfname.length());
+    }
+    std::cout << "PSF Prefix: "<<psfprefix<<", PSF Suffix: "<<psfsuffix<<std::endl;
+    
+    if ( !otfname.empty() ) {
+        i = otfname.rfind('.', otfname.length( ));
+        if (i != std::string::npos) {
+            otfprefix = otfname.substr(0,i);
+            otfsuffix = otfname.substr(i+1, otfname.length());
+        }
+        std::cout << "OTF Prefix: "<<otfprefix<<", OTF Suffix: "<<otfsuffix<<std::endl;
+    }
+    std::string xmlname = estprefix + ".xml";
+    std::cout << "Xml file: "<<xmlname<< std::endl;
+    writeXml(xmlname);
+                                                                                
+    // read in img file
+    cosm::WUImage imgData;
+    if (imgData.ReadData(imgname) == false) return;
+                                                                                
+    // read phantom file
+    bool usePhantom = false;
+    cosm::WUImage phantomData;
+    if ( phaname != "" )
+    {
+        if (phantomData.ReadData(phaname) == false) return;
+        usePhantom = true;
+    }
+                                                                                
+    // read in psf file
+    cosm::WUImage psfData;
+    if ( estLlsCheck->value() || estMapCheck->value() || 
+          estEmCheck->value() || estJvcCheck->value() )
+    { 
+        if (psfData.ReadData(psfname) == false) return;
+    }
+    bool centeredPsf = estCenteredPsfCheck->value();
+                                                                                
+    // command line parameters
+    int iterations = (int)estIterationsInput->value();
+    int update = (int)estUpdateInput->value();
+    int writeUpdate = estWriteInput->value();
+    double error = 1e-4;
+    
+    unsigned short err = 0;
+    Fl_Menu_Item* menu_item = (Fl_Menu_Item*)estConvergenceMeasureMenu->menu();
+    for ( int i = 0; i < estConvergenceMeasureMenu->size(); i++ )
+    {
+        if ( menu_item[i].value() )
+        {
+            err |= (1 << i);
+        }
+    }
+    double value = 0;
+    bool intensity = false;
+    bool roughness = false;
+    int numberOfStrata = (int)estVariantStrataNumberInput->value();
+    int startOfStrata = (int)estVariantStrataStartInput->value();
+    int sizeOfStrata = (int)estVariantStrataSizeInput->value();
+
+    // determin the algorithm
+    int algo = 0;
+    if ( estLlsCheck->value() )
+    {
+        algo = EST_LLS;
+        value = estLinearParameterInput->value();
+    }
+    else if ( estMapCheck->value() )
+    {
+        algo = EST_MAP;
+        value = estLinearParameterInput->value();
+    }
+    else if ( estJvcCheck->value() )
+    {
+        algo = EST_JVC;
+        value = estInvariantParameterInput->value();
+    }
+    else if ( estEmCheck->value() )
+    {
+        algo = EST_EM;
+        value = estInvariantParameterInput->value(); 
+        intensity = estInvariantPenaltyInput->value() == 1;
+        roughness = estInvariantPenaltyInput->value() == 2;                                                                     
+        if ( estInvariantDoubleInput->value() )
+        {
+            algo |= EST_DOUBLE;
+        }
+    }
+    else if ( estSvCheck->value() )
+    {
+        algo = EST_EMSV;
+        value = estVariantParameterInput->value();
+        intensity = estVariantPenaltyInput->value() == 1;
+        roughness = estVariantPenaltyInput->value() == 2;
+        if ( estVariantDoubleInput->value() )
+        {
+            algo |= EST_DOUBLE;
+        }
+        if ( estVariantBigInput->value() == 1 )
+        {
+            algo |= EST_IO;
+        }
+    }
+    else if ( estOsCheck->value() )
+    {
+        algo = EST_EMOS;
+        value = estVariantParameterInput->value();
+        intensity = estVariantPenaltyInput->value() == 1;
+        roughness = estVariantPenaltyInput->value() == 2;
+        if ( estVariantDoubleInput->value() )
+        {
+            algo |= EST_DOUBLE;
+        }
+        if ( estVariantBigInput->value() == 1 )
+        {
+            algo |= EST_IO;
+        }
+    }
+    if ( algo == 0 ) return;
+    
+    estProgress->value(0);
+    // convert to same data type and do estimation
+    if ( imgData.IsFloat() )
+    {
+        blitz::Array<float,N> img = imgData.GetFloatArray();
+        psfData.ConvertToFloat();
+        blitz::Array<float,N> psf = psfData.GetFloatArray();
+        if ( !larger(img.shape(), psf.shape()) )
+        {
+            fl_alert("PSF Larger Than Image");
+            return;
+        }
+        phantomData.ConvertToFloat();
+        blitz::Array<float, N> phantom = phantomData.GetFloatArray();
+        cosm::EstimatePenalty<float,N>* penalty = 
+            (intensity ? (cosm::EstimatePenalty<float,N>*)(new cosm::IntensityPenalty<float,N>(value)) :
+            (roughness ? (cosm::EstimatePenalty<float,N>*)(new cosm::RoughnessPenalty<float,N>(value)) : NULL));
+        blitz::Array<float,N> est = performEstimation(algo, img, psf, phantom, usePhantom, iterations, update, writeUpdate, numberOfStrata, startOfStrata, sizeOfStrata,(float)value, err, psfprefix, psfsuffix, otfprefix, otfsuffix, estprefix, estsuffix, centeredPsf, penalty, estProgress, estTable);
+        estProgress->value(100);
+        cosm::wuDataWrite(est, estname);
+    }
+    else if ( imgData.IsDouble() )
+    {
+        blitz::Array<double,N> img = imgData.GetDoubleArray();
+        psfData.ConvertToDouble();
+        blitz::Array<double,N> psf = psfData.GetDoubleArray();
+        if ( !larger(img.shape(), psf.shape()) )
+        {
+            fl_alert("PSF Larger Than Image");
+            return;
+        }
+        phantomData.ConvertToDouble();
+        blitz::Array<double, N> phantom = phantomData.GetDoubleArray();
+        cosm::EstimatePenalty<double,N>* penalty =  
+            (intensity ? (cosm::EstimatePenalty<double,N>*)(new cosm::IntensityPenalty<double,N>(value)) :
+            (roughness ? (cosm::EstimatePenalty<double,N>*)(new cosm::RoughnessPenalty<double,N>(value)) : NULL));
+        blitz::Array<double,N> est = performEstimation(algo, img, psf, phantom, usePhantom, iterations, update, writeUpdate, numberOfStrata, startOfStrata, sizeOfStrata, (double)value, err, psfprefix, psfsuffix, otfprefix, otfsuffix, estprefix, estsuffix, centeredPsf, penalty, estProgress, estTable);
+        estProgress->value(100);
+        cosm::wuDataWrite(est, estname);
+    }
+    else if ( imgData.IsLongDouble() )
+    {
+        blitz::Array<long double,N> img = imgData.GetLongDoubleArray();
+        psfData.ConvertToLongDouble();
+        blitz::Array<long double,N> psf = psfData.GetLongDoubleArray();
+        if ( !larger(img.shape(), psf.shape()) )
+        {
+            fl_alert("PSF Larger Than Image");    
+            return;
+        }
+        phantomData.ConvertToLongDouble();
+        blitz::Array<long double, N> phantom = phantomData.GetLongDoubleArray();
+        cosm::EstimatePenalty<long double,N>* penalty = 
+            (intensity ? (cosm::EstimatePenalty<long double,N>*)(new cosm::IntensityPenalty<long double,N>(value)) :
+            (roughness ? (cosm::EstimatePenalty<long double,N>*)(new cosm::RoughnessPenalty<long double,N>(value)) : NULL));
+        blitz::Array<long double,N> est = performEstimation(algo, img, psf, phantom, usePhantom, iterations, update, writeUpdate, numberOfStrata, startOfStrata, sizeOfStrata, (long double)value, err, psfprefix, psfsuffix, otfprefix, otfsuffix, estprefix, estsuffix, centeredPsf, penalty, estProgress, estTable);
+        estProgress->value(100);
+        cosm::wuDataWrite(est, estname);
+    }} {selected
+    }
+  }
+  Function {readXml( const std::string& filename )} {open return_type void
+  } {
+    code {cosm::EstXml<double> estXml;
+if ( !estXml.open( filename ) ) return;
+
+estLlsCheck->value(estXml.algorithm() == EstXml<double>::ALGORITHM_LLS);
+estMapCheck->value(estXml.algorithm() == EstXml<double>::ALGORITHM_MAP); 
+estEmCheck->value(estXml.algorithm() == EstXml<double>::ALGORITHM_EM);
+estJvcCheck->value(estXml.algorithm() == EstXml<double>::ALGORITHM_JVC);
+estSvCheck->value(estXml.algorithm() == EstXml<double>::ALGORITHM_EMSV); 
+estOsCheck->value(estXml.algorithm() == EstXml<double>::ALGORITHM_EMOS);
+
+estImgInput->value(estXml.imgFile().c_str());
+estPsfInput->value(estXml.psfFile().c_str());
+estEstInput->value(estXml.estFile().c_str());
+
+estCenteredPsfCheck->value(estXml.centeredPSF());
+
+estLinearParameterInput->value(estXml.linearParameter());
+estIterationsInput->value(estXml.iterationNumber());
+estUpdateInput->value(estXml.iterationUpdate());
+estWriteInput->value(estXml.iterationWrite());
+
+estInvariantDoubleInput->value(estXml.invariantDoubleZ());
+estInvariantParameterInput->value(estXml.invariantPenaltyValue());
+estInvariantPenaltyInput->value(estXml.invariantPenaltyType());
+
+estVariantDoubleInput->value(estXml.variantDoubleZ());
+estVariantParameterInput->value(estXml.variantPenaltyValue());
+estVariantPenaltyInput->value(estXml.variantPenaltyType());
+estVariantStrataNumberInput->value(estXml.variantStrataValue());
+estVariantStrataStartInput->value(estXml.variantStrataStart());
+estVariantStrataSizeInput->value(estXml.variantStrataSize());
+estVariantBigInput->value(estXml.variantOtfType());
+estOtfInput->value(estXml.variantOtfName().c_str());
+
+Fl_Menu_Item* menu_item = (Fl_Menu_Item*)estConvergenceMeasureMenu->menu();
+for ( int i = 0; i < estConvergenceMeasureMenu->size(); i++ )
+{
+    if ( (int(estXml.convergenceType()) >> i) && 0x1 )
+    {
+        menu_item[i].set();
+    }
+    else
+    {
+        menu_item[i].clear();
+    }
+}
+estPhaInput->value(estXml.convergenceName().c_str());} {}
+  }
+  Function {writeXml( const std::string& filename )} {open return_type void
+  } {
+    code {cosm::EstXml<double> estXml;
+if ( estLlsCheck->value() ) estXml.algorithm(EstXml<double>::ALGORITHM_LLS);
+if ( estMapCheck->value() ) estXml.algorithm(EstXml<double>::ALGORITHM_MAP);
+if ( estEmCheck->value() ) estXml.algorithm(EstXml<double>::ALGORITHM_EM);
+if ( estJvcCheck->value() ) estXml.algorithm(EstXml<double>::ALGORITHM_JVC);
+if ( estSvCheck->value() ) estXml.algorithm(EstXml<double>::ALGORITHM_EMSV);
+if ( estOsCheck->value() ) estXml.algorithm(EstXml<double>::ALGORITHM_EMOS);
+
+
+estXml.imgFile(estImgInput->value());
+estXml.psfFile(estPsfInput->value());
+estXml.estFile(estEstInput->value());
+
+estXml.centeredPSF(estCenteredPsfCheck->value());
+
+estXml.linearParameter(estLinearParameterInput->value());
+estXml.iterationNumber(estIterationsInput->value());
+estXml.iterationUpdate(estUpdateInput->value());
+estXml.iterationWrite(estWriteInput->value());
+
+estXml.invariantDoubleZ(estInvariantDoubleInput->value());
+estXml.invariantPenaltyValue(estInvariantParameterInput->value());
+estXml.invariantPenaltyType(EstXml<double>::PenaltyType(estInvariantPenaltyInput->value()));
+
+estXml.variantDoubleZ(estVariantDoubleInput->value());
+estXml.variantPenaltyValue(estVariantParameterInput->value());
+estXml.variantPenaltyType(EstXml<double>::PenaltyType(estVariantPenaltyInput->value()));
+estXml.variantStrataValue(estVariantStrataNumberInput->value());
+estXml.variantStrataStart(estVariantStrataStartInput->value());
+estXml.variantStrataSize(estVariantStrataSizeInput->value());
+estXml.variantOtfType(EstXml<double>::OTFType(estVariantBigInput->value()));
+estXml.variantOtfName(estOtfInput->value());
+
+int value = 0;
+Fl_Menu_Item* menu_item = (Fl_Menu_Item*)estConvergenceMeasureMenu->menu();
+for ( int i = 0; i < estConvergenceMeasureMenu->size(); i++ )
+{
+    if ( menu_item[i].value() )
+    {
+        value |= (1 << i);
+    }
+}
+estXml.convergenceType(value);
+estXml.convergenceName(estPhaInput->value());
+
+estXml.save( filename );} {}
+  }
+  Function {make_table_dialog( void )} {open return_type void
+  } {
+    Fl_Window tableDialog {open
+      xywh {965 50 513 656} type Double visible
+    } {
+      Fl_Box estTable {
+        label {Error Measure Table:}
+        xywh {30 28 455 553} box ENGRAVED_BOX align 5
+        code0 {make_table_entries();}
+        class Table
+      }
+      Fl_Return_Button {} {
+        label Close
+        callback {tableDialog->hide();}
+        xywh {395 605 86 25}
+      }
+      Fl_Button {} {
+        label {Save...}
+        callback {Fl_Native_File_Chooser native;
+
+native.title("Select Filename to Write");
+native.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
+native.filter("*.csv");
+native.show();
+if ( native.filename() )
+{
+    make_save_csv(native.filename());
+}}
+        xywh {305 605 84 25}
+      }
+    }
+  }
+  Function {make_table_entries(void)} {open return_type void
+  } {
+    code {estTable->addColumn("Iteration", 65);
+estTable->addColumn("Maximum", 70);
+estTable->addColumn("Mean", 50);
+estTable->addColumn("Mean Square", 85);
+estTable->addColumn("Log Likelihood", 100);
+estTable->addColumn("I-Divergence", 80);} {}
+  }
+  Function {make_save_csv( const char* filename)} {open return_type void
+  } {
+    code {std::filebuf file;
+file.open(filename, ios::out);
+
+std::ostream out(&file);
+out << "Iterations, Maximum, Mean, Mean Square, Log Likelihood, I-Divergence" << std::endl;
+int i = 0, j = 0;
+for ( i = 0; i < estTable->rows(); i++ )
+{
+    for ( j = 0; j < estTable->columns()-1; j++ )
+    {
+        out << estTable->valueAt(i,j) <<", ";
+    }
+    out << estTable->valueAt(i,j) << std::endl;
+}} {}
+  }
+} 

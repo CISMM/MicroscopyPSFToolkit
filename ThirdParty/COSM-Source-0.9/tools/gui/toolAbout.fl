@@ -1,0 +1,47 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0108 
+header_name {.h} 
+code_name {.cxx}
+decl {\#include <string>} {} 
+
+decl {\#include <iostream>} {} 
+
+decl {\#define STR(s) \#s} {} 
+
+decl {\#define XSTR(s) STR(s)} {} 
+
+decl {\#define VERSION XSTR(COSM_VERSION)} {} 
+
+Function {make_about()} {open
+} {
+  Fl_Window aboutDialog {
+    label {About ToolsGUI} open
+    xywh {447 559 265 165} type Double visible
+  } {
+    Fl_Group aboutGroup {open
+      xywh {15 15 220 100}
+    } {
+      Fl_Box {} {
+        label {COSM Tools}
+        xywh {30 15 205 25} labelfont 1 labelsize 18
+      }
+      Fl_Box dateLabel {
+        label {July 15  2007} selected
+        xywh {40 65 170 30} labelfont 1 labelsize 12
+        code1 {dateLabel->label(__DATE__);}
+      }
+      Fl_Box versionLabel {
+        label {Version 0.2}
+        xywh {25 40 205 25} labelfont 1 labelsize 18
+        code0 {std::string v = "Version ";}
+        code1 {v += VERSION;}
+        code2 {versionLabel->copy_label(v.c_str());}
+      }
+    }
+    Fl_Return_Button {} {
+      label OK
+      callback {((Fl_Window*)(o->parent()))->hide();}
+      xywh {90 115 80 25}
+    }
+  }
+} 
