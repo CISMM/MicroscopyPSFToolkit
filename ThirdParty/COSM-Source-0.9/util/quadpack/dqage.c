@@ -29,7 +29,7 @@
  *
  *	limit - maximum number of subintervals.
  */ 	
-double dqage(double f(double),double a,double b,double epsabs,double epsrel,
+double dqage(double f(double, void*),void * cbData,double a,double b,double epsabs,double epsrel,
     int irule,double *abserr,int *neval,int *ier,int *last)
 {
 	double area,area1,area2,area12,a1,a2,b1,b2,c,defabs;
@@ -63,22 +63,22 @@ double dqage(double f(double),double a,double b,double epsabs,double epsrel,
 	*neval = 0;
 	switch (keyf) {
 		case 1: 
-            result = G_K15(f,a,b,abserr,&defabs,&resabs);
+                result = G_K15(f,cbData,a,b,abserr,&defabs,&resabs);
 			break;
 		case 2:
-			result = G_K21(f,a,b,abserr,&defabs,&resabs);
+                        result = G_K21(f,cbData,a,b,abserr,&defabs,&resabs);
 			break;
 		case 3:
-			result = G_K31(f,a,b,abserr,&defabs,&resabs);
+                        result = G_K31(f,cbData,a,b,abserr,&defabs,&resabs);
 			break;
 		case 4:
-			result = G_K41(f,a,b,abserr,&defabs,&resabs);
+                        result = G_K41(f,cbData,a,b,abserr,&defabs,&resabs);
 			break;
 		case 5:
-			result = G_K51(f,a,b,abserr,&defabs,&resabs);
+                        result = G_K51(f,cbData,a,b,abserr,&defabs,&resabs);
 			break;
 		case 6:
-			result = G_K61(f,a,b,abserr,&defabs,&resabs);
+                        result = G_K61(f,cbData,a,b,abserr,&defabs,&resabs);
 			break;
 	}
 	*last = 0;
@@ -112,28 +112,28 @@ double dqage(double f(double),double a,double b,double epsabs,double epsrel,
 		b2 = blist[maxerr];
 		switch (keyf) {
 			case 1:
-				area1 = G_K15(f,a1,b1,&error1,&resabs,&defab1);
-				area2 = G_K15(f,a2,b2,&error2,&resabs,&defab2);
+                                area1 = G_K15(f,cbData,a1,b1,&error1,&resabs,&defab1);
+				area2 = G_K15(f,cbData,a2,b2,&error2,&resabs,&defab2);
 				break;
 			case 2:
-				area1 = G_K21(f,a1,b1,&error1,&resabs,&defab1);
-				area2 = G_K21(f,a2,b2,&error2,&resabs,&defab2);
+                                area1 = G_K21(f,cbData,a1,b1,&error1,&resabs,&defab1);
+				area2 = G_K21(f,cbData,a2,b2,&error2,&resabs,&defab2);
 				break;
 			case 3:
-				area1 = G_K31(f,a1,b1,&error1,&resabs,&defab1);
-				area2 = G_K31(f,a2,b2,&error2,&resabs,&defab2);
+                                area1 = G_K31(f,cbData,a1,b1,&error1,&resabs,&defab1);
+				area2 = G_K31(f,cbData,a2,b2,&error2,&resabs,&defab2);
 				break;
 			case 4:
-				area1 = G_K41(f,a1,b1,&error1,&resabs,&defab1);
-				area2 = G_K41(f,a2,b2,&error2,&resabs,&defab2);
+                                area1 = G_K41(f,cbData,a1,b1,&error1,&resabs,&defab1);
+				area2 = G_K41(f,cbData,a2,b2,&error2,&resabs,&defab2);
 				break;
 			case 5:
-				area1 = G_K51(f,a1,b1,&error1,&resabs,&defab1);
-				area2 = G_K51(f,a2,b2,&error2,&resabs,&defab2);
+                                area1 = G_K51(f,cbData,a1,b1,&error1,&resabs,&defab1);
+				area2 = G_K51(f,cbData,a2,b2,&error2,&resabs,&defab2);
 				break;
 			case 6:
-				area1 = G_K61(f,a1,b1,&error1,&resabs,&defab1);
-				area2 = G_K61(f,a2,b2,&error2,&resabs,&defab2);
+                                area1 = G_K61(f,cbData,a1,b1,&error1,&resabs,&defab1);
+				area2 = G_K61(f,cbData,a2,b2,&error2,&resabs,&defab2);
 				break;
 		}
 

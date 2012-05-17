@@ -29,7 +29,7 @@
  *      epsrel  - relative accuracy requested.
  *
  */      
-double dqawse(double f(double),double a,double b,double alfa,double beta,
+double dqawse(double f(double, void *),void * cbData,double a,double b,double alfa,double beta,
         int wgtfunc,double epsabs,double epsrel,double *abserr,
         int *neval,int *ier)
 {
@@ -60,10 +60,10 @@ double dqawse(double f(double),double a,double b,double alfa,double beta,
 
 /*  Integrate over the invervals (a,(a+b)/2) and ((a+b)/2,b). */
     centre = 0.5 * (a+b);
-    area1 = dqc25s(f,a,b,a,centre,alfa,beta,ri,rj,rg,rh,&error1,
+    area1 = dqc25s(f,cbData,a,b,a,centre,alfa,beta,ri,rj,rg,rh,&error1,
         &resas1,wgtfunc,&nev);
     *neval = *neval + nev;
-    area2 = dqc25s(f,a,b,centre,b,alfa,beta,ri,rj,rg,rh,&error2,
+    area2 = dqc25s(f,cbData,a,b,centre,b,alfa,beta,ri,rj,rg,rh,&error2,
         &resas2,wgtfunc,&nev);
     *neval = *neval + nev;
     result = area1 + area2;
@@ -112,10 +112,10 @@ double dqawse(double f(double),double a,double b,double alfa,double beta,
         a2 = b1;
         b2 = blist[maxerr];
 
-        area1 = dqc25s(f,a,b,a1,b1,alfa,beta,ri,rj,rg,rh,&error1,
+        area1 = dqc25s(f,cbData,a,b,a1,b1,alfa,beta,ri,rj,rg,rh,&error1,
                 &resas1,wgtfunc,&nev);
         *neval = *neval + nev;
-        area2 = dqc25s(f,a,b,a2,b2,alfa,beta,ri,rj,rg,rh,&error2,
+        area2 = dqc25s(f,cbData,a,b,a2,b2,alfa,beta,ri,rj,rg,rh,&error2,
                 &resas2,wgtfunc,&nev);
         *neval = *neval + nev;
 

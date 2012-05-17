@@ -27,7 +27,7 @@
  *	epsabs - absolute accuracy requested.
  *
  */ 	
-double dqawf(double f(double),double a,double omega,int sincos,
+double dqawf(double f(double, void*),void * cbData,double a,double omega,int sincos,
 	double epsabs,double *abserr,int *neval,int *ier)
 {
     double **chebmo,erlst[50];
@@ -62,7 +62,7 @@ double dqawf(double f(double),double a,double omega,int sincos,
  		goto _10;
 	
 /* Prepare call for dqawfe. */
-    result=dqawfe(f,a,omega,sincos,epsabs,limlst,MAXP1,
+      result=dqawfe(f,cbData,a,omega,sincos,epsabs,limlst,MAXP1,
         abserr,neval,ier,rslst,erlst,ierlst,chebmo);
 _10:
 	for (i = 0; i < MAXP1; i++)

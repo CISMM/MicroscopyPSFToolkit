@@ -38,7 +38,7 @@
  *
  *	epsrel - relative accuracy requested.
  */ 	
-double dqagi(double f(double),double bound,int inf,double epsabs,
+double dqagi(double f(double, void *),void * cbData,double bound,int inf,double epsabs,
 	double epsrel,double *abserr,int *neval,int *ier)
 {
     double abseps,area,area1,area12,area2,a1,a2,b1,b2;
@@ -72,7 +72,7 @@ double dqagi(double f(double),double bound,int inf,double epsabs,
 	boun = bound;
 	if (inf == 2) boun = 0.0;
 
-	result = G_K15I(f,boun,inf,0.0,1.0,abserr,&defabs,&resabs);
+	result = G_K15I(f,cbData,boun,inf,0.0,1.0,abserr,&defabs,&resabs);
 	
 /* Test on accuracy. */
     last = 0;
@@ -115,8 +115,8 @@ double dqagi(double f(double),double bound,int inf,double epsabs,
 		a2 = b1;
 		b2 = blist[maxerr];
 		erlast = errmax;
-		area1 = G_K15I(f,boun,inf,a1,b1,&error1,&resabs,&defab1);
-		area2 = G_K15I(f,boun,inf,a2,b2,&error2,&resabs,&defab2);
+		area1 = G_K15I(f,cbData,boun,inf,a1,b1,&error1,&resabs,&defab1);
+		area2 = G_K15I(f,cbData,boun,inf,a2,b2,&error2,&resabs,&defab2);
 		
 /* Improve previous approxminations to integral and error
   	and test for accuracy. */

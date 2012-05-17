@@ -3,7 +3,7 @@
 #include "cquadpak.h"
 #include "dqdefs.h"
 
-double G_K15I(double f(double),double boun,int inf,double a,double b,
+double G_K15I(double f(double, void*),void * cbData,double boun,int inf,double a,double b,
 	double *abserr,double *resabs,double *resasc)
 {
 	static long double XGK15[8] = {
@@ -39,9 +39,9 @@ double G_K15I(double f(double),double boun,int inf,double a,double b,
 	centr = 0.5 * (a + b);
 	hlgth = 0.5 * (b - a);
 	tabsc1 = boun + dinf * (1.0 - centr)/centr;
-	fval1 = (*f)(tabsc1);
+	fval1 = (*f)(tabsc1, cbData);
 	if (inf == 2)
-		fval1 += (*f)(-tabsc1);
+          fval1 += (*f)(-tabsc1, cbData);
 	fc=(fval1/centr)/centr;
 	resg = fc * WG7[3];
 	resk = fc * WGK15[7];
@@ -52,11 +52,11 @@ double G_K15I(double f(double),double boun,int inf,double a,double b,
 		absc2 = centr + absc;
 		tabsc1 = boun + dinf * (1.0 - absc1)/absc1;
 		tabsc2 = boun + dinf * (1.0 - absc2)/absc2;
-		fval1 = (*f)(tabsc1);
-		fval2 = (*f)(tabsc2);
+		fval1 = (*f)(tabsc1, cbData);
+		fval2 = (*f)(tabsc2, cbData);
 		if (inf == 2) {
-			fval1 += (*f)(-tabsc1);
-			fval2 += (*f)(-tabsc2);
+                    fval1 += (*f)(-tabsc1, cbData);
+                    fval2 += (*f)(-tabsc2, cbData);
 		}
 		fval1 = (fval1/absc1)/absc1;
 		fval2 = (fval2/absc2)/absc2;

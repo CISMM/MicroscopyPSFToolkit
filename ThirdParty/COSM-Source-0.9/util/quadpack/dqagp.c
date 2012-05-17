@@ -35,7 +35,7 @@
  *
  *	epsrel - relative accuracy requested.
  */ 	
-double dqagp(double f(double),double a,double b,int npts2,double *points,
+double dqagp(double f(double, void *),void * cbData,double a,double b,int npts2,double *points,
 	double epsabs,double epsrel,double *abserr,int *neval,int *ier)
 {
     double abseps,alist[LIMIT],area,area1,area12,area2;
@@ -102,7 +102,7 @@ _40:
 	resabs = 0.0;
 	for (i = 0; i < nint; i++) {
 		b1 = pts[i+1];
-		area1 = G_K21(f,a1,b1,&error1,&defabs,&resa);
+		area1 = G_K21(f,cbData,a1,b1,&error1,&defabs,&resa);
 		*abserr = *abserr + error1;
 		result = result + area1;
 		ndin[i] = 0;
@@ -195,8 +195,8 @@ _80:
 		a2 = b1;
 		b2 = blist[maxerr];
 		erlast = errmax;
-		area1 = G_K21(f,a1,b1,&error1,&resa,&defab1);
-		area2 = G_K21(f,a2,b2,&error2,&resa,&defab2);
+		area1 = G_K21(f,cbData,a1,b1,&error1,&resa,&defab1);
+		area2 = G_K21(f,cbData,a2,b2,&error2,&resa,&defab2);
 /* Improve previous approximations to integral and error
   	and test for accuracy. */
   		*neval += 42;

@@ -7,7 +7,7 @@
 #include "cquadpak.h"
 #include "dqdefs.h"
 
-double dqawo(double f(double),double a,double b,double omega, int sincos,
+double dqawo(double f(double, void *),void * cbData,double a,double b,double omega, int sincos,
 	double epsabs,double epsrel,double *abserr,int *neval,
 	int *ier)
 {
@@ -26,7 +26,7 @@ double dqawo(double f(double),double a,double b,double omega, int sincos,
 	}
 
 	momcom = 0;
-	result = dqfour(f,a,b,omega,sincos,epsabs,epsrel,
+	result = dqfour(f,cbData,a,b,omega,sincos,epsabs,epsrel,
         1,MAXP1,abserr,neval,ier,&momcom,chebmo);
 	for (i = 0;i < MAXP1; i++)
 		free(chebmo[i]);

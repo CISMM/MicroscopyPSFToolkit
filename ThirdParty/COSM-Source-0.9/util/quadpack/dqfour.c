@@ -33,7 +33,7 @@
  *
  */ 	
 
-double dqfour(double f(double),double a,double b,double omega,
+double dqfour(double f(double, void*),void * cbData,double a,double b,double omega,
 	int sincos,double epsabs,double epsrel,
     int icall,int maxp1,double *abserr,
     int *neval,int *ier,
@@ -74,7 +74,7 @@ double dqfour(double f(double),double a,double b,double omega,
     if (icall <= 1) 
         *momcom = 0;
 //_5:
-	result = dqc25o(f,a,b,domega,sincos,nrmom,maxp1,0,
+        result = dqc25o(f,cbData,a,b,domega,sincos,nrmom,maxp1,0,
 		abserr,neval,&defabs,&resabs,momcom,chebmo);
 /* Test on accuracy. */
     dres = fabs(result);
@@ -128,10 +128,10 @@ _10:
 		a2 = b1;
 		b2 = blist[maxerr];
 		erlast = errmax;
-		area1 = dqc25o(f,a1,b1,domega,sincos,nrmom,maxp1,0,
+		area1 = dqc25o(f,cbData,a1,b1,domega,sincos,nrmom,maxp1,0,
 			&error1,&nev,&resabs,&defab1,momcom,chebmo);
 		*neval += nev;
-		area2 = dqc25o(f,a2,b2,domega,sincos,nrmom,maxp1,1,
+		area2 = dqc25o(f,cbData,a2,b2,domega,sincos,nrmom,maxp1,1,
 			&error2,&nev,&resabs,&defab2,momcom,chebmo);
 		*neval += nev;
 

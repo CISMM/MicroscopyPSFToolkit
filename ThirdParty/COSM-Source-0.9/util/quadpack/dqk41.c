@@ -3,7 +3,7 @@
 #include "cquadpak.h"
 #include "dqdefs.h"
 
-double G_K41(double f(double),double a,double b,double *abserr,
+double G_K41(double f(double,void *),void * cbData,double a,double b,double *abserr,
 	double *resabs,double *resasc)
 {
 /* Gauss-Kronrod abscissae and weights for 41 - 20 rules */
@@ -73,14 +73,14 @@ double G_K41(double f(double),double a,double b,double *abserr,
     dhlgth = fabs(hlgth);
 
 	resg = 0.0;
-	fc=(*f)(centr);
+	fc=(*f)(centr, cbData);
 	resk = fc * WGK41[20];
     *resabs = fabs(resk);
 	for (j = 0; j < 10; j++) {
 		jtw = 2 * j + 1;
 		absc = hlgth * XGK41[jtw];
-		fval1 = (*f)(centr-absc);
-		fval2 = (*f)(centr+absc);
+		fval1 = (*f)(centr-absc, cbData);
+		fval2 = (*f)(centr+absc, cbData);
 		fv1[jtw] = fval1;
 		fv2[jtw] = fval2;
 		fsum = fval1 + fval2;
@@ -91,8 +91,8 @@ double G_K41(double f(double),double a,double b,double *abserr,
 	for (j = 0; j < 10; j++) {
 		jtwm1 = j * 2;
 		absc = hlgth * XGK41[jtwm1];
-		fval1 = (*f)(centr-absc);
-		fval2 = (*f)(centr+absc);
+		fval1 = (*f)(centr-absc, cbData);
+		fval2 = (*f)(centr+absc, cbData);
 		fv1[jtwm1] = fval1;
 		fv2[jtwm1] = fval2;
 		fsum = fval1 + fval2;

@@ -3,7 +3,7 @@
 #include "cquadpak.h"
 #include "dqdefs.h"
 
-double G_K15(double f(double),double a,double b,double *abserr,
+double G_K15(double f(double, void *),void * cbData,double a,double b,double *abserr,
 	double *resabs,double *resasc)
 {
 	static long double XGK15[8] = {
@@ -39,15 +39,15 @@ double G_K15(double f(double),double a,double b,double *abserr,
 	hlgth = 0.5 * (b - a);
     dhlgth = fabs(hlgth);
 
-	fc=(*f)(centr);
+      fc=(*f)(centr, cbData);
 	resg = fc * WG7[3];
 	resk = fc * WGK15[7];
     *resabs = fabs(resk);
 	for (j = 0; j < 3; j++) {
 		jtw = 2 * j + 1;
 		absc = hlgth * XGK15[jtw];
-		fval1 = (*f)(centr-absc);
-		fval2 = (*f)(centr+absc);
+		fval1 = (*f)(centr-absc, cbData);
+		fval2 = (*f)(centr+absc, cbData);
 		fv1[jtw] = fval1;
 		fv2[jtw] = fval2;
 		fsum = fval1 + fval2;
@@ -58,8 +58,8 @@ double G_K15(double f(double),double a,double b,double *abserr,
 	for (j = 0; j < 4; j++) {
 		jtwm1 = j * 2;
 		absc = hlgth * XGK15[jtwm1];
-		fval1 = (*f)(centr-absc);
-		fval2 = (*f)(centr+absc);
+		fval1 = (*f)(centr-absc, cbData);
+		fval2 = (*f)(centr+absc, cbData);
 		fv1[jtwm1] = fval1;
 		fv2[jtwm1] = fval2;
 		fsum = fval1 + fval2;

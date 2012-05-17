@@ -30,7 +30,7 @@
  *	maxp1 - upper bound on the number of Chebyshev moments
  *		which can be stored.
  */ 	
-double dqawfe(double f(double),double a,double omega,int sincos,
+double dqawfe(double f(double, void *),void * cbData, double a,double omega,int sincos,
     double epsabs,int limlst,int maxp1,
 	double *abserr,int *neval,int *ier,double rslst[],
     double erlst[],int ierlst[],double **chebmo)
@@ -54,7 +54,7 @@ double dqawfe(double f(double),double a,double omega,int sincos,
 	
 /* Integration by DQAGI if omega is zero. */
 	if (sincos == COSINE)
-		result = dqagi(f,0.0,1,epsabs,0.0,abserr,neval,ier);
+              result = dqagi(f,cbData,0.0,1,epsabs,0.0,abserr,neval,ier);
 	rslst[0] = result;
 	erlst[0] = *abserr;
 	ierlst[0] = *ier;
@@ -91,7 +91,7 @@ _10:
 /* Integrate over current subinterval. */
 /*	dla = lst;  This line is in the original code, but dla is unused. */
 	epsa = eps * fact;
-    rslst[lst] = dqfour(f,c1,c2,omega,sincos,epsa,0.0,lst+1,maxp1,  // lst+1
+      rslst[lst] = dqfour(f,cbData,c1,c2,omega,sincos,epsa,0.0,lst+1,maxp1,  // lst+1
         &erlst[lst],&nev,&ierlst[lst],&momcom,chebmo);
 	*neval += nev;
 	fact *= P;

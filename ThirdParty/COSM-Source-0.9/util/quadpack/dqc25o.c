@@ -5,7 +5,7 @@
 
 #define NMAC 27
 
-double dqc25o(double f(double),double a,double b,double omega,int sincos,
+double dqc25o(double f(double, void *),void * cbData,double a,double b,double omega,int sincos,
 	int nrmom,int maxp1,int ksave,double *abserr,int *neval,
 	double *resabs,double *resasc,int *momcom,double **chebmo)
 {
@@ -39,7 +39,7 @@ double dqc25o(double f(double),double a,double b,double omega,int sincos,
  * integration interval.
  */
     if (fabs(parint) > 2.0) goto _10;
- 	result = G_K15W(f,dqwgto,omega,p2,p3,p4,sincos,a,b,
+        result = G_K15W(f,cbData,dqwgto,omega,p2,p3,p4,sincos,a,b,
  	 		abserr,resabs,resasc);
  	*neval = 15;
  	goto _190;
@@ -187,13 +187,13 @@ _140:
 /* Compute the coefficients of the Chebyshev expansions of degrees
  * 12 and 24 of the function f.
  */
- 	fval[0] = 0.5 * f(centr+hlgth);
- 	fval[12] = f(centr);
- 	fval[24] = 0.5 * f(centr-hlgth);
+ 	fval[0] = 0.5 * f(centr+hlgth, cbData);
+ 	fval[12] = f(centr, cbData);
+ 	fval[24] = 0.5 * f(centr-hlgth, cbData);
  	for (i = 1; i < 12; i++) {
  		isym = 24 - i;
- 		fval[i] = f(hlgth*x[i-1]+centr);
- 		fval[isym] = f(centr-hlgth*x[i-1]);
+ 		fval[i] = f(hlgth*x[i-1]+centr, cbData);
+ 		fval[isym] = f(centr-hlgth*x[i-1], cbData);
  	}
 
  	dqcheb(x,fval,cheb12,cheb24);
