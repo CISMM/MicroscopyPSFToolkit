@@ -10,7 +10,6 @@ file(GLOB QUADPACK_CXX_SRC
 set( QUADPACK_SRC
   ${QUADPACK_C_SRC}
   ${QUADPACK_CXX_SRC}
-  ${COSM_PATH}/psf/psf/dqagFunction.cxx
 )
 
 add_library(ITKMicroscopyPSFToolkit ${QUADPACK_SRC})
