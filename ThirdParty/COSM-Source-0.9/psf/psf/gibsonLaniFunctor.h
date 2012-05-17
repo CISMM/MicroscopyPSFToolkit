@@ -36,8 +36,8 @@ class GibsonLaniFunctor : public Functor<T> {
 
   public:
 
-    GibsonLaniFunctor(T lambda, opdBase<T>& opd) 
-    : exp_(&cos_), opd_(opd), k_(M_PI*2.0/lambda), r_(0), pre_(0) {};
+    GibsonLaniFunctor(T lambda, opdBase<T>& opd_in) 
+    : exp_(&cos_), opd_(opd_in), k_(M_PI*2.0/lambda), r_(0), pre_(0) {};
     ~GibsonLaniFunctor() {};
 
     virtual T operator()( T x ) 
