@@ -82,9 +82,9 @@ GibsonLanniCOSMOSPointSpreadFunctionImageSource<TOutputImage>
     output->TransformIndexToPhysicalPoint( index, point );
 
     // Convert from nanometers to millimeters
-    OutputImagePixelType px = point[0] * 1e-6;
-    OutputImagePixelType py = point[1] * 1e-6;
     OutputImagePixelType pz = point[2] * 1e-6;
+    OutputImagePixelType px = point[0] * 1e-6 + (pz * this->GetShearX());
+    OutputImagePixelType py = point[1] * 1e-6 + (pz * this->GetShearY());
 
     double r = sqrt( (px*px) + (py*py) );
     it.Set( static_cast< OutputImagePixelType >( norm( gibsonLanniFunctor( pz, r ) ) ) );
