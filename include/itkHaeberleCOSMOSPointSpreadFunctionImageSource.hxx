@@ -52,9 +52,10 @@ HaeberleCOSMOSPointSpreadFunctionImageSource<TOutputImage>
 template < class TOutputImage >
 void
 HaeberleCOSMOSPointSpreadFunctionImageSource<TOutputImage>
-::GenerateData()
+::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
+                       ThreadIdType itkNotUsed(threadId))
 {
-  m_HaeberleFunctor = new cosm::HaeberlePsfFunctor< double >(
+  cosm::HaeberlePsfFunctor< double > haeberleFunctor(
     1e-3*this->GetActualPointSourceDepthInSpecimenLayer(),
     1e-3*this->GetDesignImmersionOilThickness(),
     1e-3*this->GetDesignImmersionOilThickness(), // I didn't think this
@@ -73,13 +74,9 @@ HaeberleCOSMOSPointSpreadFunctionImageSource<TOutputImage>
     1e-6*this->GetEmissionWavelength(),
     1e-6);
 
-  // allocate the output buffer
   OutputImageType * output = this->GetOutput();
-  output->SetBufferedRegion( output->GetRequestedRegion() );
-  output->Allocate();
 
-  OutputImageRegionType outputRegion = output->GetRequestedRegion();
-  ImageRegionIteratorWithIndex< OutputImageType > it(output, outputRegion);
+  ImageRegionIteratorWithIndex< OutputImageType > it(output, outputRegionForThread);
 
   while ( !it.IsAtEnd() )
     {
@@ -87,28 +84,17 @@ HaeberleCOSMOSPointSpreadFunctionImageSource<TOutputImage>
     OutputImagePointType point;
     output->TransformIndexToPhysicalPoint( index, point );
 
-    it.Set( this->ComputeSampleValue( point ) );
+    // Convert from nanometers to millimeters
+    OutputImagePixelType px = point[0] * 1e-6;
+    OutputImagePixelType py = point[1] * 1e-6;
+    OutputImagePixelType pz = point[2] * 1e-6;
+
+    double r = sqrt( (px*px) + (py*py) );
+    it.Set( static_cast< OutputImagePixelType >( norm( haeberleFunctor( pz, r ) ) ) );
+
     ++it;
     }
-
-  delete m_HaeberleFunctor;
 }
-
-//----------------------------------------------------------------------------
-template <class TOutputImage>
-double
-HaeberleCOSMOSPointSpreadFunctionImageSource<TOutputImage>
-::ComputeSampleValue(const OutputImagePointType& point)
-{
-  // Convert from nanometers to millimeters
-  OutputImagePointValueType px = point[0] * 1e-6;
-  OutputImagePointValueType py = point[1] * 1e-6;
-  OutputImagePointValueType pz = point[2] * 1e-6;
-
-  double r = sqrt( (px*px) + (py*py) );
-  return static_cast< OutputImagePixelType >( norm( (*m_HaeberleFunctor)( pz, r ) ) );
-}
-
 
 } // end namespace itk
 

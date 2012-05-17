@@ -86,19 +86,14 @@ protected:
   GibsonLanniCOSMOSPointSpreadFunctionImageSource();
   ~GibsonLanniCOSMOSPointSpreadFunctionImageSource();
 
-  /** The COSM Gibson-Lanni computations are not thread-safe, so we
-   * override the single-threaded GenerateData() here. */
-  void GenerateData();
-
-  /** Computes the light intensity at a specified point. */
-  double ComputeSampleValue(const OutputImagePointType & point);
+  /** I made changes to the integrators in cquadpack so that they
+   *  could be safely used by multiple threads. */
+  void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
+                            ThreadIdType threadId);
 
 private:
   GibsonLanniCOSMOSPointSpreadFunctionImageSource(const GibsonLanniCOSMOSPointSpreadFunctionImageSource&); //purposely not implemented
   void operator=(const GibsonLanniCOSMOSPointSpreadFunctionImageSource&); //purposely not implemented
-
-  /** The Gibson-Lanni functor that does all the work. */
-  cosm::GibsonLaniPsfFunctor< double > * m_GibsonLanniFunctor;
 };
 } // end namespace itk
 

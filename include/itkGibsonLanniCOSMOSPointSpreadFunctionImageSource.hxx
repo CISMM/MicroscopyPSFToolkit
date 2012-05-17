@@ -46,12 +46,13 @@ GibsonLanniCOSMOSPointSpreadFunctionImageSource<TOutputImage>
 }
 
 //----------------------------------------------------------------------------
-template < class TOutputImage >
+template< class TOutputImage >
 void
 GibsonLanniCOSMOSPointSpreadFunctionImageSource<TOutputImage>
-::GenerateData()
+::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
+                       ThreadIdType itkNotUsed(threadId))
 {
-  m_GibsonLanniFunctor = new cosm::GibsonLaniPsfFunctor< double >(
+  cosm::GibsonLaniPsfFunctor< double > gibsonLanniFunctor(
     1e-3*this->GetActualPointSourceDepthInSpecimenLayer(),
     1e-3*this->GetDesignImmersionOilThickness(),
     1e-3*this->GetDesignImmersionOilThickness(), // I didn't think this
@@ -70,13 +71,9 @@ GibsonLanniCOSMOSPointSpreadFunctionImageSource<TOutputImage>
     1e-6*this->GetEmissionWavelength(),
     1e-6);
 
-  // allocate the output buffer
   OutputImageType * output = this->GetOutput();
-  output->SetBufferedRegion( output->GetRequestedRegion() );
-  output->Allocate();
 
-  OutputImageRegionType outputRegion = output->GetRequestedRegion();
-  ImageRegionIteratorWithIndex< OutputImageType > it(output, outputRegion);
+  ImageRegionIteratorWithIndex< OutputImageType > it(output, outputRegionForThread);
 
   while ( !it.IsAtEnd() )
     {
@@ -84,26 +81,16 @@ GibsonLanniCOSMOSPointSpreadFunctionImageSource<TOutputImage>
     OutputImagePointType point;
     output->TransformIndexToPhysicalPoint( index, point );
 
-    it.Set( this->ComputeSampleValue( point ) );
+    // Convert from nanometers to millimeters
+    OutputImagePixelType px = point[0] * 1e-6;
+    OutputImagePixelType py = point[1] * 1e-6;
+    OutputImagePixelType pz = point[2] * 1e-6;
+
+    double r = sqrt( (px*px) + (py*py) );
+    it.Set( static_cast< OutputImagePixelType >( norm( gibsonLanniFunctor( pz, r ) ) ) );
+
     ++it;
     }
-
-  delete m_GibsonLanniFunctor;
-}
-
-//----------------------------------------------------------------------------
-template< class TOutputImage >
-double
-GibsonLanniCOSMOSPointSpreadFunctionImageSource<TOutputImage>
-::ComputeSampleValue(const OutputImagePointType & point)
-{
-  // Convert from nanometers to millimeters
-  OutputImagePixelType px = point[0] * 1e-6;
-  OutputImagePixelType py = point[1] * 1e-6;
-  OutputImagePixelType pz = point[2] * 1e-6;
-
-  double r = sqrt( (px*px) + (py*py) );
-  return static_cast< OutputImagePixelType >( norm( (*m_GibsonLanniFunctor)( pz, r ) ) );
 }
 
 } // end namespace itk

@@ -86,12 +86,10 @@ protected:
   HaeberleCOSMOSPointSpreadFunctionImageSource();
   ~HaeberleCOSMOSPointSpreadFunctionImageSource();
 
-  /** The COSM Haeberle computations are not thread-safe, so we
-   * override the single-threaded GenerateData() here. */
-  void GenerateData();
-
-  /** Computes the light intensity at a specified point. */
-  double ComputeSampleValue(const OutputImagePointType & point);
+  /** I made changes to the integrators in cquadpack so that they
+   *  could be safely used by multiple threads. */
+  void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
+                            ThreadIdType threadId);
 
 private:
   HaeberleCOSMOSPointSpreadFunctionImageSource(const HaeberleCOSMOSPointSpreadFunctionImageSource&); //purposely not implemented
