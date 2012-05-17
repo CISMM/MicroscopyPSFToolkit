@@ -29,6 +29,7 @@ COSMOSPointSpreadFunctionImageSource< TOutputImage >
 {
   m_Magnification                     = 60;    // unitless
   m_NumericalAperture                 = 1.4;   // unitless
+  m_EmissionWavelength                = 550.0; // in nanometers
   m_DesignCoverSlipRefractiveIndex    = 1.522; // unitless
   m_ActualCoverSlipRefractiveIndex    = 1.522; // unitless
   m_DesignCoverSlipThickness          = 170.0; // in micrometers

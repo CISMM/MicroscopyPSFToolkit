@@ -39,6 +39,19 @@ int itkGibsonLanniCOSMOSPointSpreadFunctionImageSourceTest(int argc, char * argv
   SourceType::SizeType size = {{32, 32, 16}};
   source->SetSize( size );
 
+  SourceType::SpacingType spacing;
+  spacing[0] = 65.0;
+  spacing[1] = 65.0;
+  spacing[2] = 200.0;
+  source->SetSpacing( spacing );
+
+  SourceType::PointType origin;
+  for (int i = 0; i < ImageType::ImageDimension; ++i)
+    {
+    origin[i] = -0.5 * ( spacing[i] * static_cast< double >(size[i]-1) );
+    }
+  source->SetOrigin( origin );
+
   typedef itk::ImageFileWriter< ImageType > WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( argv[1] );
