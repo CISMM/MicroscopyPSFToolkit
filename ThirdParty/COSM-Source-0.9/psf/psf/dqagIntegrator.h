@@ -30,20 +30,19 @@ class DqagIntegrator : public Integrator<T> {
 
   public:
 
-    DqagIntegrator( Functor<T>* func, T a, T b, T eps, int irule = 6) 
+    DqagIntegrator( Functor<T>* func, T a, T b, T eps, int irule = 6)
 	: Integrator<T>(func, a, b), eps_(eps), irule_(irule) {};
     virtual ~DqagIntegrator() {};
 
 
     // Returns integration value of a functor over interval [a,b]
-    virtual T operator()() 
+    virtual T operator()()
     {
 	int ier;
 	double abserr;
 	double value = 0;
-	functor = this->func_;
 
-	value = dqag(dqagFunction, double(this->a_),
+	value = dqag(dqagFunction, this, double(this->a_),
                      double(this->b_), double(eps_), double(eps_), irule_,
                      &abserr, &neval_, &ier);
 	error_ = T(abserr);
@@ -54,11 +53,12 @@ class DqagIntegrator : public Integrator<T> {
     T errorValue() { return error_; };
 
   protected:
-    static Functor<T>* functor;
 
-    static double dqagFunction( double val ) 
+  static double dqagFunction( double val, void * cbData )
     {
-        return (double)(*functor)( (double)val );
+      DqagIntegrator<T> * integrator = (DqagIntegrator<T> *)cbData;
+      double value = (double)(*(integrator->func_))( (double) val );
+      return value;
     };
 
   protected:

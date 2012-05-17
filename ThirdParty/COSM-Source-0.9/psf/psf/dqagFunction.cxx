@@ -20,6 +20,3 @@
 #include "dqagIntegrator.h"
 
 using namespace cosm;
-template<> Functor<float>* DqagIntegrator< float >::functor = 0;
-template<> Functor<double>* DqagIntegrator< double >::functor = 0;
-template<> Functor<long double>* DqagIntegrator< long double >::functor = 0;
