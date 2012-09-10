@@ -5,6 +5,7 @@ software available from http://cirl.memphis.edu/cosmos.php.")
 itk_module(ITKMicroscopyPSFToolkit
  DEPENDS
   ITKCommon
+  ITKImageSources
  TEST_DEPENDS
   ITKTestKernel
  DESCRIPTION
