@@ -1,22 +1,22 @@
-/*=========================================================================
+/****************************************************************************
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ * 02111-1307  USA
+ *
+ ****************************************************************************/
 
-  Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkGibsonLanniPSFImageSource.cxx,v $
-  Language:  C++
-  Date:      $Date: 2010/05/17 15:41:35 $
-  Version:   $Revision: 1.12 $
-
-  Copyright (c) Insight Software Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
-
-  Portions of this code are covered under the VTK copyright.
-  See VTKCopyright.txt or http://www.kitware.com/VTKCopyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notices for more information.
-
-=========================================================================*/
 #ifndef __itkGibsonLanniCOSMOSPointSpreadFunctionImageSource_hxx
 #define __itkGibsonLanniCOSMOSPointSpreadFunctionImageSource_hxx
 
