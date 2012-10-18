@@ -33,7 +33,9 @@ License
 ------- 
 
 The Microscopy PSF Toolkit is release under the terms of the GNU
-Public License 2.
+Public License 2. This means that if you build ITK with this external
+module, any program that uses ITK will be subject to the GNU Public
+License 2.
 
 Build Instructions
 ------------------
